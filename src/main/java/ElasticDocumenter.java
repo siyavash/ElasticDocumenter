@@ -16,7 +16,7 @@ public class ElasticDocumenter
 
     public static void main(String[] args) throws IOException
     {
-        PageInfoDataStore pageInfoDataStore = new PageInfoDataStore("2181", "localmaster,localslave");
+        PageInfoDataStore pageInfoDataStore = new PageInfoDataStore("2181", "master,slave");
         ElasticDocumenter elasticDocumenter = new ElasticDocumenter(pageInfoDataStore);
 
         elasticDocumenter.addDocuments();
@@ -43,8 +43,8 @@ public class ElasticDocumenter
         Gson gson = new Gson();
         PageInfo pageInfo;
 
-        RestClient restClient = RestClient.builder(new HttpHost("127.0.0.1", 9200, "http"),
-                new HttpHost("127.0.0.1", 9201, "http")).build();
+        RestClient restClient = RestClient.builder(new HttpHost("master", 9200, "http"),
+                new HttpHost("master", 9201, "http")).build();
 
 
         while ((pageInfo = pageInfoIterator.next()) != null)

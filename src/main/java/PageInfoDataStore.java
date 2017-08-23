@@ -12,8 +12,8 @@ import java.util.Iterator;
 public class PageInfoDataStore
 {
     private Connection hbaseConnection;
-    private TableName tableName = TableName.valueOf("smallTable");
-    private byte[] columnFamily = Bytes.toBytes("columnTable");
+    private TableName tableName = TableName.valueOf("wb");
+    private byte[] columnFamily = Bytes.toBytes("cf");
 
     public PageInfoDataStore(String zookeeperClientPort, String zookeeperQuorum) throws IOException
     {
