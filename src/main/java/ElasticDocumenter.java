@@ -35,7 +35,7 @@ public class ElasticDocumenter
     {
         String lastCheckedURL = findLastURL();
         Iterator<PageInfo> pageInfoIterator = dataStore.getRowIterator(lastCheckedURL);
-        if (lastCheckedURL == null)
+        if (lastCheckedURL != null)
         {
             pageInfoIterator.next();
         }
