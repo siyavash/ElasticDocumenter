@@ -1,3 +1,5 @@
+package ElasticDocument;
+
 import com.google.gson.Gson;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;

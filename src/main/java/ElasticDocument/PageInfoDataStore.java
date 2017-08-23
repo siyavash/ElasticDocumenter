@@ -1,3 +1,5 @@
+package ElasticDocument;
+
 import javafx.util.Pair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
