@@ -47,8 +47,8 @@ public class ElasticDocumenter
         Gson gson = new Gson();
         PageInfo pageInfo;
 
-        RestClient restClient = RestClient.builder(new HttpHost("master", 9200, "http"),
-                new HttpHost("master", 9201, "http")).build();
+        RestClient restClient = RestClient.builder(new HttpHost("slave", 9200, "http"),
+                new HttpHost("slave", 9201, "http")).build();
 
         int count = 0;
 
@@ -128,7 +128,7 @@ public class ElasticDocumenter
             bw = new BufferedWriter(fw);
             bw.write(url);
 
-            logger.info("UrlName file updated");
+//            logger.info("UrlName file updated");
 
         } catch (IOException e)
         {

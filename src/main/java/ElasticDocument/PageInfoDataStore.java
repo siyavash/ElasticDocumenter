@@ -119,10 +119,11 @@ public class PageInfoDataStore
         {
             scan = new Scan(Bytes.toBytes(lastCheckedURL));
         }
-        scan.setCaching(20);
-        scan.setBatch(100);
+        scan.setCaching(25);
+//        scan.setBatch(1000);
         ResultScanner rowScanner = table.getScanner(scan);
-
+	
+	table.close();
         // set caching
         return new RowIterator(rowScanner);
     }
