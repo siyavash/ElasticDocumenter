@@ -124,6 +124,11 @@ public class PageInfoDataStore
 
     private PageInfo createPageInfo(Result result)
     {
+        if (result == null)
+        {
+            return null;
+        }
+
         PageInfo pageInfo = new PageInfo();
 
         pageInfo.setUrl(new String(result.getRow()));

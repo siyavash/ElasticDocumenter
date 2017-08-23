@@ -115,7 +115,6 @@ public class ElasticDocumenter
 
         } catch (IOException e)
         {
-
             e.printStackTrace();
 
         } finally
