@@ -5,6 +5,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.nio.entity.NStringEntity;
+import org.apache.log4j.Logger;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 
@@ -15,6 +16,7 @@ import java.util.Iterator;
 public class ElasticDocumenter
 {
     private PageInfoDataStore dataStore;
+    private Logger logger = Logger.getLogger(Class.class.getName());
 
     public static void main(String[] args) throws IOException
     {
@@ -48,6 +50,8 @@ public class ElasticDocumenter
         RestClient restClient = RestClient.builder(new HttpHost("master", 9200, "http"),
                 new HttpHost("master", 9201, "http")).build();
 
+        int count = 0;
+
 
         while ((pageInfo = pageInfoIterator.next()) != null)
         {
@@ -57,6 +61,12 @@ public class ElasticDocumenter
             HttpEntity putEntity = new NStringEntity(requestBody, ContentType.APPLICATION_JSON);
             Response addingResponse = restClient.performRequest("POST", "/gagoole/page/"/* + pageInfo.getUrl()*/, Collections.emptyMap(), putEntity);
 
+            count++;
+
+            if ((count % 100) == 0)
+            {
+                logger.info(count + " rows documented");
+            }
         }
 
         restClient.close();
@@ -72,12 +82,15 @@ public class ElasticDocumenter
             fr = new FileReader("lastUrlName.txt");
             br = new BufferedReader(fr);
 
+            logger.info("url name file found");
+
             return br.readLine();
 
         } catch (IOException e)
         {
             if (e instanceof FileNotFoundException)
             {
+                logger.warn("url name file not found");
                 return null;
             }
 
@@ -115,9 +128,12 @@ public class ElasticDocumenter
             bw = new BufferedWriter(fw);
             bw.write(url);
 
+            logger.info("UrlName file updated");
+
         } catch (IOException e)
         {
-            e.printStackTrace();
+
+            logger.warn("failed to update UrlName file");
 
         } finally
         {

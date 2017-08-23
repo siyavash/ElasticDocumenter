@@ -6,6 +6,7 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ public class PageInfoDataStore
     private Connection hbaseConnection;
     private TableName tableName = TableName.valueOf("wb");
     private byte[] columnFamily = Bytes.toBytes("cf");
+    private Logger logger = Logger.getLogger(Class.class.getName());
 
     public PageInfoDataStore(String zookeeperClientPort, String zookeeperQuorum) throws IOException
     {
@@ -23,6 +25,7 @@ public class PageInfoDataStore
         configuration.set("hbase.zookeeper.property.clientPort", zookeeperClientPort);
         configuration.set("hbase.zookeeper.quorum", zookeeperQuorum);
         hbaseConnection = ConnectionFactory.createConnection(configuration);
+        logger.info("Connection to hbase established");
     }
 
     public PageInfoDataStore() throws IOException
