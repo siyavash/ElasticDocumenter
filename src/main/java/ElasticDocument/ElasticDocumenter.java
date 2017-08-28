@@ -38,31 +38,22 @@ public class ElasticDocumenter
 
     public void addDocuments() throws IOException
     {
-        String lastCheckedURL = findLastURL();
-        Iterator<PageInfo> pageInfoIterator = dataStore.getRowIterator(lastCheckedURL);
-        if (lastCheckedURL != null)
-        {
-            pageInfoIterator.next();
-        }
-
-        RestClient restClient = RestClient.builder(new HttpHost("slave", 9200, "http"),
-                new HttpHost("slave", 9201, "http")).build();
-
         startIteratingThread();
 
         try
         {
-            startSendingRequests(restClient);
+            startSendingRequests(); //TODO close client
         } catch (InterruptedException e)
         {
             e.printStackTrace(); // TODO
         }
-
-        restClient.close();
     }
 
-    private void startSendingRequests(RestClient restClient) throws InterruptedException, IOException //TODO handle exceptions
+    private void startSendingRequests() throws InterruptedException, IOException //TODO handle exceptions
     {
+        RestClient restClient = RestClient.builder(new HttpHost("slave", 9200, "http"),
+                new HttpHost("slave", 9201, "http")).build();
+
         long t1 = 0;
 
         while (true)
@@ -117,6 +108,11 @@ public class ElasticDocumenter
         String lastCheckedURL = findLastURL();
         Iterator<PageInfo> pageInfoIterator = dataStore.getRowIterator(lastCheckedURL);
         PageInfo pageInfo;
+
+        if (lastCheckedURL != null)
+        {
+            pageInfoIterator.next();
+        }
 
         while ((pageInfo = pageInfoIterator.next()) != null)
         {
