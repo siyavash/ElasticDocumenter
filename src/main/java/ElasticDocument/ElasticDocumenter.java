@@ -83,6 +83,7 @@ public class ElasticDocumenter
             t1 = System.currentTimeMillis() - t1;
 
             logger.info("Request sent in " + t1 + " milli seconds");
+            writeURLToFile(pageInfos.get(4).getUrl());
 //            requestCount += 5;
 //
 //            if (requestCount % 100 == 0)
