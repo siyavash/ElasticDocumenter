@@ -10,13 +10,18 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class ElasticDocumenter
 {
     private PageInfoDataStore dataStore;
     private Logger logger = Logger.getLogger(Class.class.getName());
+    private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue = new ArrayBlockingQueue<>(10000);
+//    private int requestCount;
+    private int iterateCount;
 
     public static void main(String[] args) throws IOException
     {
@@ -31,10 +36,6 @@ public class ElasticDocumenter
         this.dataStore = dataStore;
     }
 
-    public ElasticDocumenter()
-    {
-    }
-
     public void addDocuments() throws IOException
     {
         String lastCheckedURL = findLastURL();
@@ -44,32 +45,96 @@ public class ElasticDocumenter
             pageInfoIterator.next();
         }
 
-        Gson gson = new Gson();
-        PageInfo pageInfo;
-
         RestClient restClient = RestClient.builder(new HttpHost("slave", 9200, "http"),
                 new HttpHost("slave", 9201, "http")).build();
 
-        int count = 0;
+        startIteratingThread();
 
-
-        while ((pageInfo = pageInfoIterator.next()) != null)
+        try
         {
-
-            writeURLToFile(pageInfo.getUrl());
-            String requestBody = gson.toJson(pageInfo, PageInfo.class);
-            HttpEntity putEntity = new NStringEntity(requestBody, ContentType.APPLICATION_JSON);
-            Response addingResponse = restClient.performRequest("POST", "/gagoole/page/"/* + pageInfo.getUrl()*/, Collections.emptyMap(), putEntity);
-
-            count++;
-
-            if ((count % 100) == 0)
-            {
-                logger.info(count + " rows documented");
-            }
+            startSendingRequests(restClient);
+        } catch (InterruptedException e)
+        {
+            e.printStackTrace(); // TODO
         }
 
         restClient.close();
+    }
+
+    private void startSendingRequests(RestClient restClient) throws InterruptedException, IOException //TODO handle exceptions
+    {
+        long t1 = 0;
+
+        while (true)
+        {
+            ArrayList<PageInfo> pageInfos = new ArrayList<>();
+
+            for (int i = 0; i < 5; i++)
+            {
+                pageInfos.add(pageInfoArrayBlockingQueue.take());
+            }
+
+            t1 = System.currentTimeMillis();
+
+            String requestBody = createRequestBody(pageInfos);
+            HttpEntity putEntity = new NStringEntity(requestBody, ContentType.APPLICATION_JSON);
+            Response addingResponse = restClient.performRequest("POST", "_bulk", Collections.emptyMap(), putEntity);
+
+            t1 = System.currentTimeMillis() - t1;
+
+            logger.info("Request sent in " + t1 + " milli seconds");
+//            requestCount += 5;
+//
+//            if (requestCount % 100 == 0)
+//            {
+//                logger.info(requestCount + " request sent");
+//            }
+        }
+    }
+
+    private String createRequestBody(ArrayList<PageInfo> pageInfos)
+    {
+        StringBuilder finalRequest = new StringBuilder();
+        Gson gson = new Gson();
+
+        for (PageInfo pageInfo : pageInfos)
+        {
+            finalRequest.append("{ \"index\" : { \"_index\" : \"gagoole\", \"_type\" : \"page\"} }");
+            finalRequest.append("\n");
+
+            String request = gson.toJson(pageInfo, PageInfo.class);
+
+            finalRequest.append(request);
+            finalRequest.append("\n");
+        }
+
+        return finalRequest.toString();
+    }
+
+    private void startIteratingThread() throws IOException //TODO handle exce[ptions
+    {
+        String lastCheckedURL = findLastURL();
+        Iterator<PageInfo> pageInfoIterator = dataStore.getRowIterator(lastCheckedURL);
+        PageInfo pageInfo;
+
+        while ((pageInfo = pageInfoIterator.next()) != null)
+        {
+            try
+            {
+                pageInfoArrayBlockingQueue.put(pageInfo);
+            } catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+
+            iterateCount++;
+
+
+            if (iterateCount % 100 == 0)
+            {
+                logger.info(iterateCount + " iteration done");
+            }
+        }
     }
 
     private String findLastURL()
