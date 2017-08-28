@@ -22,6 +22,7 @@ public class ElasticDocumenter
     private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue = new ArrayBlockingQueue<>(10000);
 //    private int requestCount;
     private int iterateCount;
+    private static int REQUEST_THREAD_DOC_NUM = 10;
 
     public static void main(String[] args) throws IOException
     {
@@ -60,7 +61,7 @@ public class ElasticDocumenter
         {
             ArrayList<PageInfo> pageInfos = new ArrayList<>();
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < REQUEST_THREAD_DOC_NUM; i++)
             {
                 pageInfos.add(pageInfoArrayBlockingQueue.take());
             }
