@@ -119,7 +119,7 @@ public class PageInfoDataStore
         {
             scan = new Scan(Bytes.toBytes(lastCheckedURL));
         }
-        scan.setCaching(25);
+        scan.setCaching(23);
 //        scan.setBatch(1000);
         ResultScanner rowScanner = table.getScanner(scan);
 
@@ -228,7 +228,16 @@ public class PageInfoDataStore
 
             try
             {
+                long t1 = System.currentTimeMillis();
+
                 nextResult = rowScanner.next();
+
+                t1 = System.currentTimeMillis() - t1;
+                if (t1 > 50)
+                {
+                    logger.warn("Getting the next object in the iterator took " + t1 + " milli seconds");
+                }
+
             } catch (IOException e)
             {
                 return null;

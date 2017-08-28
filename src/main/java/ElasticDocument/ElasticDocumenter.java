@@ -22,7 +22,7 @@ public class ElasticDocumenter
     private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue = new ArrayBlockingQueue<>(10000);
 //    private int requestCount;
     private int iterateCount;
-    private static int REQUEST_THREAD_DOC_NUM = 10;
+    private static int REQUEST_THREAD_DOC_NUM = 15;
 
     public static void main(String[] args) throws IOException
     {
