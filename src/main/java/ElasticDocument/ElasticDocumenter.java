@@ -105,33 +105,47 @@ public class ElasticDocumenter
 
     private void startIteratingThread() throws IOException //TODO handle exce[ptions
     {
-        String lastCheckedURL = findLastURL();
-        Iterator<PageInfo> pageInfoIterator = dataStore.getRowIterator(lastCheckedURL);
-        PageInfo pageInfo;
-
-        if (lastCheckedURL != null)
+        new Thread(new Runnable()
         {
-            pageInfoIterator.next();
-        }
+            @Override
+            public void run()
+            {
+                String lastCheckedURL = findLastURL();
+                Iterator<PageInfo> pageInfoIterator = null;
+                try
+                {
+                    pageInfoIterator = dataStore.getRowIterator(lastCheckedURL);
+                } catch (IOException e)
+                {
+                    e.printStackTrace(); //TODO
+                }
+                PageInfo pageInfo;
 
-        while ((pageInfo = pageInfoIterator.next()) != null)
-        {
-            try
-            {
-                pageInfoArrayBlockingQueue.put(pageInfo);
-            } catch (InterruptedException e)
-            {
-                e.printStackTrace();
+                if (lastCheckedURL != null)
+                {
+                    pageInfoIterator.next();
+                }
+
+                while ((pageInfo = pageInfoIterator.next()) != null)
+                {
+                    try
+                    {
+                        pageInfoArrayBlockingQueue.put(pageInfo);
+                    } catch (InterruptedException e)
+                    {
+                        e.printStackTrace();
+                    }
+
+                    iterateCount++;
+
+
+                    if (iterateCount % 100 == 0)
+                    {
+                        logger.info(iterateCount + " iteration done");
+                    }
+                }
             }
-
-            iterateCount++;
-
-
-            if (iterateCount % 100 == 0)
-            {
-                logger.info(iterateCount + " iteration done");
-            }
-        }
+        }).start();
     }
 
     private String findLastURL()
