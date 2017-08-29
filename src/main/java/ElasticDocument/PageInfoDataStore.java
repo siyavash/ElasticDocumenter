@@ -123,7 +123,7 @@ public class PageInfoDataStore
 //        scan.setBatch(1000);
         ResultScanner rowScanner = table.getScanner(scan);
 
-	table.close();
+	    table.close();
         // set caching
         return new RowIterator(rowScanner);
     }

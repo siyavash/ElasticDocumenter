@@ -15,7 +15,6 @@ public class ElasticDocumenter
     private Logger logger = Logger.getLogger(Class.class.getName());
     private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue = new ArrayBlockingQueue<>(10000);
     private int iterateCount;
-    private static int REQUEST_THREAD_NUM = 2;
 
     public static void main(String[] args) throws IOException
     {
@@ -46,7 +45,7 @@ public class ElasticDocumenter
     private void startSendingRequestsThread() throws InterruptedException
     {
         Thread slaveRequestingThread = new RequestingThread("slave", pageInfoArrayBlockingQueue);
-        Thread masterRequestingThread = new RequestingThread("master", pageInfoArrayBlockingQueue);
+        Thread masterRequestingThread = new RequestingThread("slave", pageInfoArrayBlockingQueue);
 
         slaveRequestingThread.start();
         masterRequestingThread.start();

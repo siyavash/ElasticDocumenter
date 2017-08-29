@@ -19,7 +19,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class RequestingThread extends Thread
 {
     private RestClient restClient; //TODO implement it in a way to be able to close it
-    private static int REQUEST_THREAD_DOC_NUM = 15;
+    private static int REQUEST_THREAD_DOC_NUM = 200;
     private Logger logger = Logger.getLogger(Class.class.getName());
     private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue;
 
