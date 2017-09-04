@@ -115,7 +115,9 @@ public class RequestingThread extends Thread
 
         for (PageInfo pageInfo : pageInfos)
         {
-            finalRequest.append("{ \"index\" : { \"_index\" : \"gagoole\", \"_type\" : \"page\"} }");
+            String id = createId(pageInfo.getUrl());
+
+            finalRequest.append("{ \"index\" : { \"_index\" : \"gagoole\", \"_type\" : \"page\", \"_id\" : \"").append(id).append("\" } }");
             finalRequest.append("\n");
 
             String request = gson.toJson(pageInfo, PageInfo.class);
@@ -125,5 +127,25 @@ public class RequestingThread extends Thread
         }
 
         return finalRequest.toString();
+    }
+
+    private String createId(String url)
+    {
+        String id = url.replaceAll("[^a-zA-Z]", "");
+        if (id.length() > 512)
+        {
+            StringBuilder newId = new StringBuilder(id.substring(0, 460));
+            StringBuilder aux = new StringBuilder();
+            int x = (id.length() - 512 + 40) / 40;
+            for (int i = 0; i < 40; i++)
+            {
+                aux.append(id.charAt(460 + x * (i + 1)));
+            }
+            newId.append(aux);
+            newId.append(id.substring(id.length() - 12, id.length()));
+            id = newId.toString();
+        }
+
+        return id;
     }
 }

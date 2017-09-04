@@ -90,60 +90,46 @@ public class PageInfoDataStore
         return new String(bodyTexts);
     }
 
-    private int toPageInfoInt(byte[] num){
+    private int toPageInfoInt(byte[] num)
+    {
         if (num == null)
         {
             return 0;
         }
 
-        int value= 0;
-        for(int i=0; i<num.length; i++)
+        int value = 0;
+        for (int i = 0; i < num.length; i++)
             value = (value << 8) | num[i];
         return value;
     }
 
     private class RowIterator implements Iterator<PageInfo>
     {
-        private ResultScanner rowScanner;
+        private Iterator<Result> rowIterator;
 
         private RowIterator(ResultScanner rowScanner)
         {
-            this.rowScanner = rowScanner;
+            this.rowIterator = rowScanner.iterator();
         }
 
 
         @Override
         public boolean hasNext()
         {
-            try
-            {
-                return rowScanner.next() != null;
-            } catch (IOException e)
-            {
-                return true;
-            }
+            return rowIterator.hasNext();
         }
 
         @Override
         public PageInfo next()
         {
-            Result nextResult;
+            long t1 = System.currentTimeMillis();
 
-            try
+            Result nextResult = rowIterator.next();
+
+            t1 = System.currentTimeMillis() - t1;
+            if (t1 > 50)
             {
-                long t1 = System.currentTimeMillis();
-
-                nextResult = rowScanner.next();
-
-                t1 = System.currentTimeMillis() - t1;
-                if (t1 > 50)
-                {
-                    logger.warn("Getting the next object in the iterator took " + t1 + " milli seconds");
-                }
-
-            } catch (IOException e)
-            {
-                return null;
+                logger.warn("Getting the next object in the iterator took " + t1 + " milli seconds");
             }
 
             return createPageInfo(nextResult);

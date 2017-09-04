@@ -101,10 +101,12 @@ public class ElasticDocumenter
         long start;
         long currentTime = System.currentTimeMillis() - (60000);
         String[] timeStampParts;
-        try {
-             timeStampParts= timeStamps.split(",");
-        }catch (NullPointerException e){
-            timeStampParts=new String[0];
+        try
+        {
+            timeStampParts = timeStamps.split(",");
+        } catch (NullPointerException e)
+        {
+            timeStampParts = new String[0];
         }
         switch (timeStampParts.length)
         {
@@ -134,18 +136,18 @@ public class ElasticDocumenter
 
     private void writeToTimeStampFile(long start, long end)
     {
-        BufferedWriter bw = null;
-        FileWriter fw = null;
+        BufferedWriter bufferedWriter = null;
+        FileWriter fileWriter = null;
 
         try
         {
-            fw = new FileWriter("timeStamp.txt");
-            bw = new BufferedWriter(fw);
+            fileWriter = new FileWriter("timeStamp.txt");
+            bufferedWriter = new BufferedWriter(fileWriter);
 
             logger.info("url name file found");
-            bw.write(start + "");
+            bufferedWriter.write(start + "");
             if (end != -1)
-                bw.write("," + end);
+                bufferedWriter.write("," + end);
 
         } catch (IOException e)
         {
@@ -163,11 +165,11 @@ public class ElasticDocumenter
             try
             {
 
-                if (bw != null)
-                    bw.close();
+                if (bufferedWriter != null)
+                    bufferedWriter.close();
 
-                if (fw != null)
-                    fw.close();
+                if (fileWriter != null)
+                    fileWriter.close();
 
             } catch (IOException ex)
             {
@@ -182,8 +184,9 @@ public class ElasticDocumenter
         try (Scanner scanner = new Scanner(new File(fileName)))
         {
             return scanner.nextLine();
-        } catch (FileNotFoundException e) {
-            logger.info(fileName+" not found");
+        } catch (FileNotFoundException e)
+        {
+            logger.info(fileName + " not found");
             return null;
         }
     }
