@@ -40,7 +40,7 @@ public class ElasticDocumenter
         }
     }
 
-    private void startSendingRequestsThread() throws InterruptedException, FileNotFoundException
+    private void startSendingRequestsThread() throws InterruptedException
     {
         Thread slaveRequestingThread = new RequestingThread("slave", pageInfoArrayBlockingQueue);
         Thread masterRequestingThread = new RequestingThread("master", pageInfoArrayBlockingQueue);
@@ -51,7 +51,12 @@ public class ElasticDocumenter
         slaveRequestingThread.join();
         masterRequestingThread.join();
 
-        long startTime = Long.parseLong(getDataFromFile("timeStamp.txt").split(",")[1]);
+        long startTime = 0;
+        try {
+            startTime = Long.parseLong(getDataFromFile("timeStamp.txt").split(",")[1]);
+        } catch (FileNotFoundException e) {
+            logger.info("timeStamp.txt not found");
+        }
         writeToTimeStampFile(startTime, -1);
 
     }
