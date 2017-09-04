@@ -1,12 +1,9 @@
 package ElasticDocument;
 
-import javafx.util.Pair;
-
 import java.util.ArrayList;
 
 public class PageInfo
 {
-
     private String url;
     private String bodyText;
     private String titleMeta;
@@ -15,11 +12,15 @@ public class PageInfo
     private String authorMeta;
     private String contentTypeMeta;
     private String title;
-    private ArrayList<Pair<String, String>> subLinks;
+    private int numOfInputLinks;
+    private ArrayList<String> inputAnchors; // TODO: 9/4/17
 
-    public String getUrl()
-    {
-        return url;
+    public void setNumOfInputLinks(int numOfInputLinks) {
+        this.numOfInputLinks = numOfInputLinks;
+    }
+
+    public void setInputAnchors(ArrayList<String> inputAnchors) {
+        this.inputAnchors = inputAnchors;
     }
 
     public void setUrl(String url)
@@ -27,19 +28,9 @@ public class PageInfo
         this.url = url;
     }
 
-    public String getBodyText()
-    {
-        return bodyText;
-    }
-
     public void setBodyText(String bodyText)
     {
         this.bodyText = bodyText;
-    }
-
-    public String getTitle()
-    {
-        return title;
     }
 
     public void setTitle(String title)
@@ -47,29 +38,9 @@ public class PageInfo
         this.title = title;
     }
 
-    public ArrayList<Pair<String,String>> getSubLinks()
-    {
-        return subLinks;
-    }
-
-    public void setSubLinks(ArrayList<Pair<String, String>> subLinks)
-    {
-        this.subLinks = subLinks;
-    }
-
-    public String getTitleMeta()
-    {
-        return titleMeta;
-    }
-
     public void setTitleMeta(String titleMeta)
     {
         this.titleMeta = titleMeta;
-    }
-
-    public String getDescriptionMeta()
-    {
-        return descriptionMeta;
     }
 
     public void setDescriptionMeta(String descriptionMeta)
@@ -77,19 +48,9 @@ public class PageInfo
         this.descriptionMeta = descriptionMeta;
     }
 
-    public String getKeyWordsMeta()
-    {
-        return keyWordsMeta;
-    }
-
     public void setKeyWordsMeta(String keyWordsMeta)
     {
         this.keyWordsMeta = keyWordsMeta;
-    }
-
-    public String getAuthorMeta()
-    {
-        return authorMeta;
     }
 
     public void setAuthorMeta(String authorMeta)
@@ -97,13 +58,12 @@ public class PageInfo
         this.authorMeta = authorMeta;
     }
 
-    public String getContentTypeMeta()
-    {
-        return contentTypeMeta;
-    }
-
     public void setContentTypeMeta(String contentTypeMeta)
     {
         this.contentTypeMeta = contentTypeMeta;
+    }
+
+    public String getUrl() {
+        return url;
     }
 }

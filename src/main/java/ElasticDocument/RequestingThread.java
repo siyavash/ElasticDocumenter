@@ -81,8 +81,6 @@ public class RequestingThread extends Thread
             bw = new BufferedWriter(fw);
             bw.write(url);
 
-//            logger.info("UrlName file updated");
-
         } catch (IOException e)
         {
 
