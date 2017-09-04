@@ -26,8 +26,7 @@ public class RequestingThread extends Thread
 
     public RequestingThread(String host, ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue)
     {
-        restClient = RestClient.builder(new HttpHost(host, 9200, "http"),
-                new HttpHost(host, 9201, "http")).build();
+        restClient = RestClient.builder(new HttpHost(host, 9200, "http")).build();
 
         this.pageInfoArrayBlockingQueue = pageInfoArrayBlockingQueue;
     }

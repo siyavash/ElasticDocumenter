@@ -2,11 +2,9 @@ package ElasticDocument;
 
 import org.apache.log4j.Logger;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.Iterator;
+import java.util.Scanner;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class ElasticDocumenter
@@ -42,87 +40,115 @@ public class ElasticDocumenter
         }
     }
 
-    private void startSendingRequestsThread() throws InterruptedException
+    private void startSendingRequestsThread() throws InterruptedException, FileNotFoundException
     {
         Thread slaveRequestingThread = new RequestingThread("slave", pageInfoArrayBlockingQueue);
-        Thread masterRequestingThread = new RequestingThread("slave", pageInfoArrayBlockingQueue);
+        Thread masterRequestingThread = new RequestingThread("master", pageInfoArrayBlockingQueue);
 
         slaveRequestingThread.start();
         masterRequestingThread.start();
 
         slaveRequestingThread.join();
         masterRequestingThread.join();
+
+        long startTime = Long.parseLong(getDataFromFile("timeStamp.txt").split(",")[1]);
+        writeToTimeStampFile(startTime, -1);
+
     }
 
     private void startIteratingThread() throws IOException //TODO handle exce[ptions
     {
-        new Thread(new Runnable()
-        {
-            @Override
-            public void run()
+        new Thread(() -> {
+            Iterator<PageInfo> pageInfoIterator = null;
+            try
             {
-                String lastCheckedURL = findLastURL();
-                Iterator<PageInfo> pageInfoIterator = null;
+                pageInfoIterator = findCorrectIterator();
+            } catch (IOException e)
+            {
+                e.printStackTrace(); //TODO
+            }
+            PageInfo pageInfo;
+
+            while ((pageInfo = pageInfoIterator.next()) != null)
+            {
                 try
                 {
-                    pageInfoIterator = dataStore.getRowIterator(lastCheckedURL);
-                } catch (IOException e)
+                    pageInfoArrayBlockingQueue.put(pageInfo);
+                } catch (InterruptedException e)
                 {
-                    e.printStackTrace(); //TODO
-                }
-                PageInfo pageInfo;
-
-                if (lastCheckedURL != null)
-                {
-                    pageInfoIterator.next();
+                    e.printStackTrace();
                 }
 
-                while ((pageInfo = pageInfoIterator.next()) != null)
+                iterateCount++;
+
+
+                if (iterateCount % 100 == 0)
                 {
-                    try
-                    {
-                        pageInfoArrayBlockingQueue.put(pageInfo);
-                    } catch (InterruptedException e)
-                    {
-                        e.printStackTrace();
-                    }
-
-                    iterateCount++;
-
-
-                    if (iterateCount % 100 == 0)
-                    {
-                        logger.info(iterateCount + " iteration done");
-                    }
+                    logger.info(iterateCount + " iteration done");
                 }
             }
         }).start();
     }
 
-    private String findLastURL()
+    private Iterator<PageInfo> findCorrectIterator() throws IOException
     {
-        BufferedReader br = null;
-        FileReader fr = null;
+        String lastCheckedURL = getDataFromFile("lastUrlName.txt");
+        String timeStamps = getDataFromFile("timeStamp.txt");
+        Iterator<PageInfo> rowIterator = null;
+        long start;
+        long currentTime = System.currentTimeMillis() - (60000);
+
+        String[] timeStampParts = timeStamps.split(",");
+        switch (timeStampParts.length)
+        {
+            case 0:
+                writeToTimeStampFile(0L, currentTime);
+                rowIterator = dataStore.getRowIterator(0L, currentTime, lastCheckedURL);
+                break;
+            case 1:
+                start = Long.parseLong(timeStampParts[0]);
+                writeToTimeStampFile(start, currentTime);
+                rowIterator = dataStore.getRowIterator(start, currentTime, lastCheckedURL);
+                break;
+            case 2:
+                long end = Long.parseLong(timeStampParts[1]);
+                start = Long.parseLong(timeStampParts[0]);
+                rowIterator = dataStore.getRowIterator(start, end, lastCheckedURL);
+                break;
+        }
+
+        if (lastCheckedURL != null)
+        {
+            rowIterator.next();
+        }
+
+        return rowIterator;
+    }
+
+    private void writeToTimeStampFile(long start, long end)
+    {
+        BufferedWriter bw = null;
+        FileWriter fw = null;
 
         try
         {
-            fr = new FileReader("lastUrlName.txt");
-            br = new BufferedReader(fr);
+            fw = new FileWriter("timeStamp.txt");
+            bw = new BufferedWriter(fw);
 
             logger.info("url name file found");
-
-            return br.readLine();
+            bw.write(start + "");
+            if (end != -1)
+                bw.write("," + end);
 
         } catch (IOException e)
         {
             if (e instanceof FileNotFoundException)
             {
                 logger.warn("url name file not found");
-                return null;
+                return;
             }
 
             e.printStackTrace();
-            return null;
 
         } finally
         {
@@ -130,17 +156,25 @@ public class ElasticDocumenter
             try
             {
 
-                if (br != null)
-                    br.close();
+                if (bw != null)
+                    bw.close();
 
-                if (fr != null)
-                    fr.close();
+                if (fw != null)
+                    fw.close();
 
             } catch (IOException ex)
             {
                 ex.printStackTrace();
             }
 
+        }
+    }
+
+    private String getDataFromFile(String fileName) throws FileNotFoundException
+    {
+        try (Scanner scanner = new Scanner(new File(fileName)))
+        {
+            return scanner.nextLine();
         }
     }
 }

@@ -1,6 +1,7 @@
 package ElasticDocument;
 
 import javafx.util.Pair;
+import org.apache.commons.net.ntp.TimeStamp;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
@@ -110,22 +111,38 @@ public class PageInfoDataStore
 
     public Iterator<PageInfo> getRowIterator(String lastCheckedURL) throws IOException
     {
-        Table table = hbaseConnection.getTable(tableName);
-        Scan scan;
-        if (lastCheckedURL == null)
-        {
-            scan = new Scan();
-        } else
-        {
-            scan = new Scan(Bytes.toBytes(lastCheckedURL));
-        }
-        scan.setCaching(23);
-//        scan.setBatch(1000);
-        ResultScanner rowScanner = table.getScanner(scan);
+        return getRowIterator(-1, -1, lastCheckedURL);
+    }
 
-	    table.close();
-        // set caching
-        return new RowIterator(rowScanner);
+    public Iterator<PageInfo> getRowIterator(long startTimeStamp, long stopTimeStamp, String lastCheckedURL) throws IOException
+    {
+        Table table = null;
+        try
+        {
+            table = hbaseConnection.getTable(tableName);
+            Scan scan;
+            if (lastCheckedURL == null)
+            {
+                scan = new Scan();
+            } else
+            {
+                scan = new Scan(Bytes.toBytes(lastCheckedURL));
+            }
+
+            if (startTimeStamp != -1 && stopTimeStamp != -1)
+            {
+                scan.setTimeRange(startTimeStamp, stopTimeStamp);
+            }
+            scan.setCaching(23);
+            ResultScanner rowScanner = table.getScanner(scan);
+            return new RowIterator(rowScanner);
+        } finally
+        {
+            if (table != null)
+            {
+                table.close();
+            }
+        }
     }
 
     private PageInfo createPageInfo(Result result)
