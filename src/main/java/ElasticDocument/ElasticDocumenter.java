@@ -100,8 +100,12 @@ public class ElasticDocumenter
         Iterator<PageInfo> rowIterator = null;
         long start;
         long currentTime = System.currentTimeMillis() - (60000);
-
-        String[] timeStampParts = timeStamps.split(",");
+        String[] timeStampParts;
+        try {
+             timeStampParts= timeStamps.split(",");
+        }catch (NullPointerException e){
+            timeStampParts=new String[0];
+        }
         switch (timeStampParts.length)
         {
             case 0:
