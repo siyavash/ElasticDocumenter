@@ -52,11 +52,7 @@ public class ElasticDocumenter
         masterRequestingThread.join();
 
         long startTime = 0;
-        try {
-            startTime = Long.parseLong(getDataFromFile("timeStamp.txt").split(",")[1]);
-        } catch (FileNotFoundException e) {
-            logger.info("timeStamp.txt not found");
-        }
+        startTime = Long.parseLong(getDataFromFile("timeStamp.txt").split(",")[1]);
         writeToTimeStampFile(startTime, -1);
 
     }
@@ -97,8 +93,10 @@ public class ElasticDocumenter
 
     private Iterator<PageInfo> findCorrectIterator() throws IOException
     {
-        String lastCheckedURL = getDataFromFile("lastUrlName.txt");
-        String timeStamps = getDataFromFile("timeStamp.txt");
+        String lastCheckedURL;
+        String timeStamps;
+        lastCheckedURL = getDataFromFile("lastUrlName.txt");
+        timeStamps = getDataFromFile("timeStamp.txt");
         Iterator<PageInfo> rowIterator = null;
         long start;
         long currentTime = System.currentTimeMillis() - (60000);
@@ -175,11 +173,14 @@ public class ElasticDocumenter
         }
     }
 
-    private String getDataFromFile(String fileName) throws FileNotFoundException
+    private String getDataFromFile(String fileName)
     {
         try (Scanner scanner = new Scanner(new File(fileName)))
         {
             return scanner.nextLine();
+        } catch (FileNotFoundException e) {
+            logger.info(fileName+" not found");
+            return null;
         }
     }
 }
