@@ -44,7 +44,7 @@ public class RequestingThread extends Thread
                 try
                 {
                     PageInfo pageInfo = pageInfoArrayBlockingQueue.take();
-                    if (pageInfo.getUrl() == "finished")
+                    if (pageInfo.getUrl().equals("finished"))
                     {
                         iterationFinished = true;
                         break;
