@@ -5,7 +5,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.nio.entity.NStringEntity;
-import org.apache.log4j.Logger;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 
@@ -19,8 +18,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class RequestingThread extends Thread
 {
     private RestClient restClient; //TODO implement it in a way to be able to close it
-    private static int REQUEST_THREAD_DOC_NUM = 200;
-    private Logger logger = Logger.getLogger(Class.class.getName());
+    private static int REQUEST_THREAD_DOC_NUM = 500;
     private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue;
 
 
@@ -35,6 +33,7 @@ public class RequestingThread extends Thread
     public void run()
     {
         long t1;
+        boolean iterationFinished = false;
 
         while (true)
         {
@@ -44,7 +43,13 @@ public class RequestingThread extends Thread
             {
                 try
                 {
-                    pageInfos.add(pageInfoArrayBlockingQueue.take());
+                    PageInfo pageInfo = pageInfoArrayBlockingQueue.take();
+                    if (pageInfo == null)
+                    {
+                        iterationFinished = true;
+                        break;
+                    }
+                    pageInfos.add(pageInfo);
                 } catch (InterruptedException e)
                 {
                     e.printStackTrace(); //TODO
@@ -58,6 +63,7 @@ public class RequestingThread extends Thread
             try
             {
                 Response addingResponse = restClient.performRequest("POST", "_bulk", Collections.emptyMap(), putEntity);
+                Profiler.requestSent(REQUEST_THREAD_DOC_NUM);
             } catch (IOException e)
             {
                 e.printStackTrace(); //TODO
@@ -65,8 +71,21 @@ public class RequestingThread extends Thread
 
             t1 = System.currentTimeMillis() - t1;
 
-            logger.info("Request sent in " + t1 + " milli seconds");
-            writeURLToFile(pageInfos.get(4).getUrl());
+            Profiler.info("Request sent in " + t1 + " milli seconds");
+            writeURLToFile(pageInfos.get(pageInfos.size() - 1).getUrl());
+
+            if (iterationFinished)
+            {
+                break;
+            }
+        }
+
+        try
+        {
+            restClient.close();
+        } catch (IOException e)
+        {
+            Profiler.error("Failed to close REST client");
         }
     }
 
@@ -84,7 +103,7 @@ public class RequestingThread extends Thread
         } catch (IOException e)
         {
 
-            logger.warn("failed to update UrlName file");
+            Profiler.error("failed to update UrlName file");
 
         } finally
         {

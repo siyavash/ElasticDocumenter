@@ -1,7 +1,5 @@
 package ElasticDocument;
 
-import org.apache.log4j.Logger;
-
 import java.io.*;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -10,7 +8,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class ElasticDocumenter
 {
     private PageInfoDataStore dataStore;
-    private Logger logger = Logger.getLogger(Class.class.getName());
     private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue = new ArrayBlockingQueue<>(10000);
     private int iterateCount;
 
@@ -33,7 +30,7 @@ public class ElasticDocumenter
 
         try
         {
-            startSendingRequestsThread(); //TODO close client
+            startSendingRequestsThread();
         } catch (InterruptedException e)
         {
             e.printStackTrace(); //TODO
@@ -66,7 +63,8 @@ public class ElasticDocumenter
                 pageInfoIterator = findCorrectIterator();
             } catch (IOException e)
             {
-                e.printStackTrace(); //TODO
+                Profiler.fatal("Failed to get iterator");
+                System.exit(0);
             }
             PageInfo pageInfo;
 
@@ -85,8 +83,18 @@ public class ElasticDocumenter
 
                 if (iterateCount % 100 == 0)
                 {
-                    logger.info(iterateCount + " iteration done");
+                    Profiler.info(iterateCount + " iteration done");
                 }
+            }
+
+
+            try
+            {
+                pageInfoArrayBlockingQueue.put(null);
+                pageInfoArrayBlockingQueue.put(null);
+            } catch (InterruptedException e)
+            {
+                e.printStackTrace();
             }
         }).start();
     }
@@ -144,7 +152,7 @@ public class ElasticDocumenter
             fileWriter = new FileWriter("timeStamp.txt");
             bufferedWriter = new BufferedWriter(fileWriter);
 
-            logger.info("url name file found");
+            Profiler.info("url name file found");
             bufferedWriter.write(start + "");
             if (end != -1)
                 bufferedWriter.write("," + end);
@@ -153,7 +161,7 @@ public class ElasticDocumenter
         {
             if (e instanceof FileNotFoundException)
             {
-                logger.warn("url name file not found");
+                Profiler.error("url name file not found");
                 return;
             }
 
@@ -186,7 +194,7 @@ public class ElasticDocumenter
             return scanner.nextLine();
         } catch (FileNotFoundException e)
         {
-            logger.info(fileName + " not found");
+            Profiler.info(fileName + " not found");
             return null;
         }
     }
