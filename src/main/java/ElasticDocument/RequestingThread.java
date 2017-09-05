@@ -24,7 +24,7 @@ public class RequestingThread extends Thread
 
     public RequestingThread(String host, ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue)
     {
-        restClient = RestClient.builder(new HttpHost(host, 9200, "http")).build();
+        restClient = RestClient.builder(new HttpHost(host, 9200, "http"), new HttpHost(host, 9201, "http")).build();
 
         this.pageInfoArrayBlockingQueue = pageInfoArrayBlockingQueue;
     }
@@ -64,14 +64,14 @@ public class RequestingThread extends Thread
             {
                 Response addingResponse = restClient.performRequest("POST", "_bulk", Collections.emptyMap(), putEntity);
                 Profiler.requestSent(REQUEST_THREAD_DOC_NUM);
+                t1 = System.currentTimeMillis() - t1;
+                Profiler.info("Request sent in " + t1 + " milli seconds");
             } catch (IOException e)
             {
                 e.printStackTrace(); //TODO
             }
 
-            t1 = System.currentTimeMillis() - t1;
 
-            Profiler.info("Request sent in " + t1 + " milli seconds");
             writeURLToFile(pageInfos.get(pageInfos.size() - 1).getUrl());
 
             if (iterationFinished)
