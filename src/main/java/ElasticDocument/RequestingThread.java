@@ -18,7 +18,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class RequestingThread extends Thread
 {
     private RestClient restClient; //TODO implement it in a way to be able to close it
-    private static int REQUEST_THREAD_DOC_NUM = 500;
+    private static int REQUEST_THREAD_DOC_NUM = 5000;
     private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue;
 
 
@@ -44,7 +44,7 @@ public class RequestingThread extends Thread
                 try
                 {
                     PageInfo pageInfo = pageInfoArrayBlockingQueue.take();
-                    if (pageInfo == null)
+                    if (pageInfo.getUrl() == "finished")
                     {
                         iterationFinished = true;
                         break;

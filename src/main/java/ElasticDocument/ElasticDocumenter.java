@@ -88,11 +88,11 @@ public class ElasticDocumenter
                 }
             }
 
-
             try
             {
-                pageInfoArrayBlockingQueue.put(null);
-                pageInfoArrayBlockingQueue.put(null);
+                PageInfo pageInfoFinsed = new PageInfo();
+                pageInfoFinsed.setUrl("finished");
+                pageInfoArrayBlockingQueue.put(pageInfoFinsed);
             } catch (InterruptedException e)
             {
                 e.printStackTrace();
