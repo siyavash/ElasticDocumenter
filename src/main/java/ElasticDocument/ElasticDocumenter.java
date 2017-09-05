@@ -13,6 +13,7 @@ public class ElasticDocumenter
 
     public static void main(String[] args) throws IOException
     {
+        Profiler.start();
         PageInfoDataStore pageInfoDataStore = new PageInfoDataStore("2181", "master,slave");
         ElasticDocumenter elasticDocumenter = new ElasticDocumenter(pageInfoDataStore);
 
