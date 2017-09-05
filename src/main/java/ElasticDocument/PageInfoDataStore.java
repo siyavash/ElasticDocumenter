@@ -45,7 +45,7 @@ public class PageInfoDataStore
             {
                 scan.setTimeRange(startTimeStamp, stopTimeStamp);
             }
-            scan.setCaching(100);
+            scan.setCaching(23);
             ResultScanner rowScanner = table.getScanner(scan);
             return new RowIterator(rowScanner);
         } finally
