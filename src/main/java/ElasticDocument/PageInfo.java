@@ -66,4 +66,49 @@ public class PageInfo
     public String getUrl() {
         return url;
     }
+
+    public String getBodyText()
+    {
+        return bodyText;
+    }
+
+    public String getTitleMeta()
+    {
+        return titleMeta;
+    }
+
+    public String getDescriptionMeta()
+    {
+        return descriptionMeta;
+    }
+
+    public String getKeyWordsMeta()
+    {
+        return keyWordsMeta;
+    }
+
+    public String getAuthorMeta()
+    {
+        return authorMeta;
+    }
+
+    public String getContentTypeMeta()
+    {
+        return contentTypeMeta;
+    }
+
+    public String getTitle()
+    {
+        return title;
+    }
+
+    public int getNumOfInputLinks()
+    {
+        return numOfInputLinks;
+    }
+
+    public ArrayList<String> getInputAnchors()
+    {
+        return inputAnchors;
+    }
 }
