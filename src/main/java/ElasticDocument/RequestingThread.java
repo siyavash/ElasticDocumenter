@@ -150,7 +150,7 @@ public class RequestingThread extends Thread
 
     private String createId(String url)
     {
-        String id = url.replaceAll("[^a-zA-Z]", "");
+        String id = url.replaceAll("[^a-zA-Z0-9]", "");
         if (id.length() > 512)
         {
             StringBuilder newId = new StringBuilder(id.substring(0, 460));
