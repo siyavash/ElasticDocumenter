@@ -26,12 +26,11 @@ public class PageInfoDataStore
         logger.info("Connection to hbase established");
     }
 
-    public Iterator<PageInfo> getRowIterator(long startTimeStamp, long stopTimeStamp, String lastCheckedURL) throws IOException
+    public Iterator<PageInfo> getRowIterator(long startTimeStamp, long stopTimeStamp, String lastCheckedURL)
+            throws IOException
     {
-        Table table = null;
-        try
+        try(Table table = hbaseConnection.getTable(tableName))
         {
-            table = hbaseConnection.getTable(tableName);
             Scan scan;
             if (lastCheckedURL == null)
             {
@@ -48,12 +47,6 @@ public class PageInfoDataStore
             scan.setCaching(23);
             ResultScanner rowScanner = table.getScanner(scan);
             return new RowIterator(rowScanner);
-        } finally
-        {
-            if (table != null)
-            {
-                table.close();
-            }
         }
     }
 
