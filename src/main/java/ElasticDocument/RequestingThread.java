@@ -89,43 +89,6 @@ public class RequestingThread extends Thread
         }
     }
 
-    private void writeURLToFile(String url)
-    {
-        BufferedWriter bw = null;
-        FileWriter fw = null;
-
-        try
-        {
-            fw = new FileWriter("lastUrlName.txt");
-            bw = new BufferedWriter(fw);
-            bw.write(url);
-
-        } catch (IOException e)
-        {
-
-            Profiler.error("failed to update UrlName file");
-
-        } finally
-        {
-
-            try
-            {
-
-                if (bw != null)
-                    bw.close();
-
-                if (fw != null)
-                    fw.close();
-
-            } catch (IOException ex)
-            {
-
-                ex.printStackTrace();
-
-            }
-
-        }
-    }
 
     private String createRequestBody(ArrayList<PageInfo> pageInfos)
     {
@@ -136,7 +99,8 @@ public class RequestingThread extends Thread
         {
             String id = createId(pageInfo.getUrl());
 
-            finalRequest.append("{ \"index\" : { \"_index\" : \"gagoole\", \"_type\" : \"page\", \"_id\" : \"").append(id).append("\" } }");
+            finalRequest.append("{ \"index\" : { \"_index\" : \"gagoole\", \"_type\" : \"page\", \"_id\" : \"")
+                    .append(id).append("\" } }");
             finalRequest.append("\n");
 
             String request = gson.toJson(pageInfo, PageInfo.class);
@@ -166,5 +130,17 @@ public class RequestingThread extends Thread
         }
 
         return id;
+    }
+
+    private void writeURLToFile(String url)
+    {
+        try(FileWriter fw = new FileWriter("lastUrlName.txt"); BufferedWriter bw = new BufferedWriter(fw))
+        {
+            bw.write(url);
+
+        } catch (IOException e)
+        {
+            Profiler.error("failed to update UrlName file");
+        }
     }
 }
