@@ -79,9 +79,20 @@ public class Searcher
         return "{\n" +
                 "\"from\" : 0 , \"size\" : 10," +
                 "\"query\": {\n" +
+                "\"function_score\" : {" +
+                "\"boost_mode\": \"sum\", \n" +
+                "\"query\": {\n" +
                 "\"multi_match\" : {\n" +
                 "\"query\" : \"" + input + "\",\n" +
-                "\"fields\" : [ \"bodyText^0.01\" , \"descriptionMeta^3\" , \"keyWordsMeta^3\" , \"authorMeta\" , \"contentTypeMeta^2\" , \"title^5\" ]\n" +
+                "\"fields\" : [ \"bodyText^0.01\" , \"descriptionMeta^3\" , \"keyWordsMeta^3\" , \"authorMeta\" , \"contentTypeMeta^2\" , \"title^5\", \"url^2\" ]\n" +
+                "}\n" +
+                "},\n" +
+                "\"field_value_factor\": {\n" +
+                "\"field\": \"numOfInputLinks\",\n" +
+                "\"factor\": 1,\n" +
+                "\"modifier\": \"ln1p\",\n" +
+                "\"missing\": 0\n" +
+                "}\n" +
                 "}\n" +
                 "}\n" +
                 "}";
