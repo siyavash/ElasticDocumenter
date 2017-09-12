@@ -68,9 +68,10 @@ public class Searcher
             JSONObject json = hits.getJSONObject(i).getJSONObject("_source");
             if (json.has("url"))
             {
-                System.out.println(json.getString("url"));
+                System.out.println(json.getString("url") + " " + hits.getJSONObject(i).get("_score"));
             }
         }
+        System.out.println(responseString);
     }
 
     private String createQuery(String input)
@@ -83,6 +84,7 @@ public class Searcher
                 "\"boost_mode\": \"sum\", \n" +
                 "\"query\": {\n" +
                 "\"multi_match\" : {\n" +
+                "\"operator\": \"and\", \n" +
                 "\"query\" : \"" + input + "\",\n" +
                 "\"fields\" : [ \"bodyText^0.01\" , \"descriptionMeta^3\" , \"keyWordsMeta^3\" , \"authorMeta\" , \"contentTypeMeta^2\" , \"title^5\", \"url^2\" ]\n" +
                 "}\n" +
