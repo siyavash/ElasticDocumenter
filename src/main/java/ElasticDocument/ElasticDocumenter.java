@@ -41,7 +41,7 @@ public class ElasticDocumenter {
 
         long start = zookeeperManager.getNewTime(timeSteps);
         long end = start + timeSteps;
-
+        System.out.println("<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>");
         while (end < System.currentTimeMillis()) {
             startIteratingThread(start, end);
 
@@ -50,7 +50,7 @@ public class ElasticDocumenter {
             zookeeperManager.deleteTime();
             start = zookeeperManager.getNewTime(timeSteps);
             end = start + timeSteps;
-            System.err.println(end);
+            System.out.println(end + ">>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<");
         }
 
         zookeeperManager.close();
