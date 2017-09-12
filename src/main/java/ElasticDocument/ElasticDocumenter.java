@@ -1,7 +1,5 @@
 package ElasticDocument;
 
-import org.apache.zookeeper.KeeperException;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Iterator;
@@ -12,8 +10,9 @@ public class ElasticDocumenter {
     private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue = new ArrayBlockingQueue<>(10000);
     private int iterateCount;
     private ZookeeperManager zookeeperManager;
-    private long timeSteps = 1000 * 60 * 20;
+    private long timeSteps = 1000 * 60 * 120;
     private String ipAddress = InetAddress.getLocalHost().getHostAddress();
+    private Thread iteratingThread;
 
     public static void main(String[] args) throws Exception {
 
@@ -51,6 +50,7 @@ public class ElasticDocumenter {
             zookeeperManager.deleteTime();
             start = zookeeperManager.getNewTime(timeSteps);
             end = start + timeSteps;
+            System.err.println(end);
         }
 
         zookeeperManager.close();
@@ -68,7 +68,7 @@ public class ElasticDocumenter {
     }
 
     private void startIteratingThread(long start, long end) throws IOException, InterruptedException{
-        new Thread(() -> {
+        iteratingThread = new Thread(() -> {
             Iterator<PageInfo> pageInfoIterator = null;
             try {
                 pageInfoIterator = dataStore.getRowIterator(start, end);
@@ -107,7 +107,8 @@ public class ElasticDocumenter {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }).start();
+        });
+        iteratingThread.start();
     }
 
 }

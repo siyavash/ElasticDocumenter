@@ -49,7 +49,6 @@ public class RequestingThread extends Thread {
             t1 = System.currentTimeMillis();
 
             String requestBody = createRequestBody(pageInfos);
-            System.out.println(requestBody);
             HttpEntity putEntity = new NStringEntity(requestBody, ContentType.APPLICATION_JSON);
             try {
                 restClient.performRequest("POST", "_bulk", Collections.emptyMap(), putEntity);
