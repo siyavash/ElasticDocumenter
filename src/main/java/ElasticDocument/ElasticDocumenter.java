@@ -11,7 +11,7 @@ public class ElasticDocumenter {
     private ArrayBlockingQueue<PageInfo> pageInfoToElastic = new ArrayBlockingQueue<>(10000);
     private int iterateCount;
     private ZookeeperManager zookeeperManager;
-    private long timeSteps = 1000 * 60 * 120;
+    private long timeSteps = 1000 * 60 * 20;
     private String ipAddress = InetAddress.getLocalHost().getHostAddress();
     private Thread iteratingThread;
 
@@ -42,7 +42,6 @@ public class ElasticDocumenter {
 
         long start = zookeeperManager.getNewTime(timeSteps);
         long end = start + timeSteps;
-
         Thread reindexDecider = new ReindexDecider(pageInfoFromHbase, pageInfoToElastic);
         reindexDecider.start();
         while (end < System.currentTimeMillis()) {
@@ -53,7 +52,7 @@ public class ElasticDocumenter {
             zookeeperManager.deleteTime();
             start = zookeeperManager.getNewTime(timeSteps);
             end = start + timeSteps;
-            System.err.println(end);
+            System.out.println(end + ">>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<");
         }
 
         zookeeperManager.close();
@@ -70,7 +69,7 @@ public class ElasticDocumenter {
         slaveRequestingThread.join();
     }
 
-    private void startIteratingThread(long start, long end) throws IOException, InterruptedException{
+    private void startIteratingThread(long start, long end) throws IOException, InterruptedException {
         iteratingThread = new Thread(() -> {
             Iterator<PageInfo> pageInfoIterator = null;
             try {
@@ -82,12 +81,10 @@ public class ElasticDocumenter {
             }
             PageInfo pageInfo;
 
-            while ((pageInfo = pageInfoIterator.next()) != null)
-            {
-                try
-                {
-                    if (pageInfo.getNumOfInputLinks() == 0)
-                    {
+            while ((pageInfo = pageInfoIterator.next()) != null) {
+                try {
+                    if (pageInfo.getNumOfInputLinks() == 0 || pageInfo.getBodyText() == null) {
+                        Profiler.info("skiped in iterating");
                         continue;
                     }
                     pageInfoFromHbase.put(pageInfo);
