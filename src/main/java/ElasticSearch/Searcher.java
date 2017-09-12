@@ -40,7 +40,7 @@ public class Searcher
             String searchQuery = createQuery(input);
 
             HttpEntity getEntity = new NStringEntity(searchQuery, ContentType.APPLICATION_JSON);
-            Response response = restClient.performRequest("POST", "/gagoole/_search?pretty=true", Collections.emptyMap(), getEntity);
+            Response response = restClient.performRequest("POST", "/gagoolev2/_search?pretty=true", Collections.emptyMap(), getEntity);
             String responseString = EntityUtils.toString(response.getEntity());
             showResults(responseString);
         }

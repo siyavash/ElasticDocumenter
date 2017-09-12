@@ -77,7 +77,7 @@ public class ReindexDecider extends Thread {
         HttpEntity getEntity = new NStringEntity("", ContentType.APPLICATION_JSON);
         Response response = null;
         try {
-            response = restClient.performRequest("GET", "/gagoole/page/" + getUrlID(url) + "/_source", Collections.emptyMap(), getEntity);
+            response = restClient.performRequest("GET", "/gagoolev2/page/" + getUrlID(url) + "/_source", Collections.emptyMap(), getEntity);
         } catch (IOException e) {
             e.printStackTrace();
         }

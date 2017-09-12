@@ -80,7 +80,7 @@ public class RequestingThread extends Thread {
         for (PageInfo pageInfo : pageInfos) {
             String id = createId(pageInfo.getUrl());
 
-            finalRequest.append("{ \"index\" : { \"_index\" : \"gagoole\", \"_type\" : \"page\", \"_id\" : \"")
+            finalRequest.append("{ \"index\" : { \"_index\" : \"gagoolev2\", \"_type\" : \"page\", \"_id\" : \"")
                     .append(id).append("\" } }");
             finalRequest.append("\n");
 
