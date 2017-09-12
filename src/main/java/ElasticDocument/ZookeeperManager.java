@@ -35,6 +35,9 @@ public class ZookeeperManager {
         if (client.checkExists().forPath(path + "/servers/" + ipAdress + "/time") == null)
             client.create().forPath(path + "/servers/" + ipAdress + "/time");
 
+        if (client.checkExists().forPath(path + "/nextTime") == null)
+            client.create().forPath(path + "/nextTime", "0".getBytes());
+
         client.create().withMode(CreateMode.EPHEMERAL).forPath(path + "/servers/" + ipAdress + "/isAlive");
     }
 
