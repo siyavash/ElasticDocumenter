@@ -14,7 +14,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class RequestingThread extends Thread {
     private RestClient restClient;
-    private static int REQUEST_THREAD_DOC_NUM = 6000;
+    private static int REQUEST_THREAD_DOC_NUM = 600;
     private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue;
 
 
