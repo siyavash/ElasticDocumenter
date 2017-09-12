@@ -1,71 +1,81 @@
 package ElasticDocument;
 
-import java.io.*;
+import org.apache.zookeeper.KeeperException;
+
+import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Iterator;
-import java.util.Scanner;
 import java.util.concurrent.ArrayBlockingQueue;
 
-public class ElasticDocumenter
-{
+public class ElasticDocumenter {
     private PageInfoDataStore dataStore;
     private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue = new ArrayBlockingQueue<>(10000);
     private int iterateCount;
+    private ZookeeperManager zookeeperManager;
+    private long timeSteps = 1000 * 60 * 20;
+    private String ipAddress = InetAddress.getLocalHost().getHostAddress();
 
-    public static void main(String[] args) throws IOException
-    {
+    public static void main(String[] args) throws Exception {
+
         Profiler.start();
-        PageInfoDataStore pageInfoDataStore = new PageInfoDataStore("2181", "master,slave");
-        ElasticDocumenter elasticDocumenter = new ElasticDocumenter(pageInfoDataStore);
 
-        elasticDocumenter.addDocuments();
+        PageInfoDataStore pageInfoDataStore =
+                new PageInfoDataStore("2181", "master,slave");
+
+        ElasticDocumenter elasticDocumenter
+                = new ElasticDocumenter(pageInfoDataStore, "master:2181,slave:2181", "/elasticDocumenter");
+
+        elasticDocumenter.startAddingDocuments();
+
+        Profiler.close();
     }
 
-    public ElasticDocumenter(PageInfoDataStore dataStore)
-    {
+    public ElasticDocumenter(PageInfoDataStore dataStore, String hosts, String path)
+            throws Exception {
         this.dataStore = dataStore;
+        zookeeperManager = new ZookeeperManager(hosts, path, ipAddress);
+
+        zookeeperManager.makeEphemeral();
     }
 
-    public void addDocuments() throws IOException
-    {
-        startIteratingThread();
+    public void startAddingDocuments() throws Exception {
 
-        try
-        {
+        long start = zookeeperManager.getNewTime(timeSteps);
+        long end = start + timeSteps;
+
+        while (end < System.currentTimeMillis()) {
+            startIteratingThread(start, end);
+
             startSendingRequestsThread();
-        } catch (InterruptedException e)
-        {
-            e.printStackTrace(); //TODO
+
+            zookeeperManager.deleteTime();
+            start = zookeeperManager.getNewTime(timeSteps);
+            end = start + timeSteps;
         }
+
+        zookeeperManager.close();
     }
 
-    private void startSendingRequestsThread() throws InterruptedException
-    {
-        Thread slaveRequestingThread = new RequestingThread("slave", pageInfoArrayBlockingQueue);
+    private void startSendingRequestsThread() throws InterruptedException {
         Thread masterRequestingThread = new RequestingThread("master", pageInfoArrayBlockingQueue);
+        Thread slaveRequestingThread = new RequestingThread("slave", pageInfoArrayBlockingQueue);
 
-        slaveRequestingThread.start();
         masterRequestingThread.start();
+        slaveRequestingThread.start();
 
-        slaveRequestingThread.join();
         masterRequestingThread.join();
-
-        long startTime = 0;
-        startTime = Long.parseLong(getDataFromFile("timeStamp.txt").split(",")[1]);
-        writeToTimeStampFile(startTime, -1);
-
+        slaveRequestingThread.join();
     }
 
-    private void startIteratingThread() throws IOException //TODO handle exce[ptions
-    {
+    private void startIteratingThread(long start, long end) throws IOException, InterruptedException{
         new Thread(() -> {
             Iterator<PageInfo> pageInfoIterator = null;
-            try
-            {
-                pageInfoIterator = findCorrectIterator();
-            } catch (IOException e)
-            {
+            try {
+                pageInfoIterator = dataStore.getRowIterator(start, end);
+            } catch (IOException e) {
                 Profiler.fatal("Failed to get iterator");
-                System.exit(0);
+                e.printStackTrace();
+                System.exit(87);
             }
             PageInfo pageInfo;
 
@@ -78,129 +88,26 @@ public class ElasticDocumenter
                         continue;
                     }
                     pageInfoArrayBlockingQueue.put(pageInfo);
-                } catch (InterruptedException e)
-                {
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
                 iterateCount++;
 
-
-                if (iterateCount % 100 == 0)
-                {
+                if (iterateCount % 100 == 0) {
                     Profiler.info(iterateCount + " iteration done");
                 }
             }
 
-            try
-            {
+            try {
                 PageInfo pageInfoFinsed = new PageInfo();
                 pageInfoFinsed.setUrl("finished");
                 pageInfoArrayBlockingQueue.put(pageInfoFinsed);
-            } catch (InterruptedException e)
-            {
+                pageInfoArrayBlockingQueue.put(pageInfoFinsed);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }).start();
     }
 
-    private Iterator<PageInfo> findCorrectIterator() throws IOException
-    {
-        String lastCheckedURL;
-        String timeStamps;
-        lastCheckedURL = getDataFromFile("lastUrlName.txt");
-        timeStamps = getDataFromFile("timeStamp.txt");
-        Iterator<PageInfo> rowIterator = null;
-        long start;
-        long currentTime = System.currentTimeMillis() - (60000);
-        String[] timeStampParts;
-        try
-        {
-            timeStampParts = timeStamps.split(",");
-        } catch (NullPointerException e)
-        {
-            timeStampParts = new String[0];
-        }
-        switch (timeStampParts.length)
-        {
-            case 0:
-                writeToTimeStampFile(0L, currentTime);
-                rowIterator = dataStore.getRowIterator(0L, currentTime, lastCheckedURL);
-                break;
-            case 1:
-                start = Long.parseLong(timeStampParts[0]);
-                writeToTimeStampFile(start, currentTime);
-                rowIterator = dataStore.getRowIterator(start, currentTime, lastCheckedURL);
-                break;
-            case 2:
-                long end = Long.parseLong(timeStampParts[1]);
-                start = Long.parseLong(timeStampParts[0]);
-                rowIterator = dataStore.getRowIterator(start, end, lastCheckedURL);
-                break;
-        }
-
-        if (lastCheckedURL != null)
-        {
-            rowIterator.next();
-        }
-
-        return rowIterator;
-    }
-
-    private void writeToTimeStampFile(long start, long end)
-    {
-        BufferedWriter bufferedWriter = null;
-        FileWriter fileWriter = null;
-
-        try
-        {
-            fileWriter = new FileWriter("timeStamp.txt");
-            bufferedWriter = new BufferedWriter(fileWriter);
-
-            Profiler.info("url name file found");
-            bufferedWriter.write(start + "");
-            if (end != -1)
-                bufferedWriter.write("," + end);
-
-        } catch (IOException e)
-        {
-            if (e instanceof FileNotFoundException)
-            {
-                Profiler.error("url name file not found");
-                return;
-            }
-
-            e.printStackTrace();
-
-        } finally
-        {
-
-            try
-            {
-
-                if (bufferedWriter != null)
-                    bufferedWriter.close();
-
-                if (fileWriter != null)
-                    fileWriter.close();
-
-            } catch (IOException ex)
-            {
-                ex.printStackTrace();
-            }
-
-        }
-    }
-
-    private String getDataFromFile(String fileName)
-    {
-        try (Scanner scanner = new Scanner(new File(fileName)))
-        {
-            return scanner.nextLine();
-        } catch (FileNotFoundException e)
-        {
-            Profiler.info(fileName + " not found");
-            return null;
-        }
-    }
 }

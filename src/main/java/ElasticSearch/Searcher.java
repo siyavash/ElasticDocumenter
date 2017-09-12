@@ -52,8 +52,8 @@ public class Searcher
     {
 
         responseString = "{ \"obj\":" + responseString + "}";
-        JSONObject jsonObject = new JSONObject(responseString).getJSONObject("obj");
-        JSONArray hits = jsonObject.getJSONObject("hits").getJSONArray("hits");
+        JSONObject hitsJsonObject = new JSONObject(responseString).getJSONObject("obj").getJSONObject("hits");
+        JSONArray hits = hitsJsonObject.getJSONArray("hits");
 
         if (hits.length() == 0)
         {
@@ -61,14 +61,14 @@ public class Searcher
             return;
         }
 
-        System.out.println("Results: ");
+        System.out.println("Found " + hitsJsonObject.get("total") + " results:");
 
         for (int i = 0; i < hits.length(); i++)
         {
             JSONObject json = hits.getJSONObject(i).getJSONObject("_source");
             if (json.has("url"))
             {
-                System.out.println(json.getString("url"));
+                System.out.println((i+1) + ". " + json.getString("url"));
             }
         }
     }
@@ -83,6 +83,7 @@ public class Searcher
                 "\"boost_mode\": \"sum\", \n" +
                 "\"query\": {\n" +
                 "\"multi_match\" : {\n" +
+                "\"operator\": \"and\", \n" +
                 "\"query\" : \"" + input + "\",\n" +
                 "\"fields\" : [ \"bodyText^0.01\" , \"descriptionMeta^3\" , \"keyWordsMeta^3\" , \"authorMeta\" , \"contentTypeMeta^2\" , \"title^5\", \"url^2\" ]\n" +
                 "}\n" +

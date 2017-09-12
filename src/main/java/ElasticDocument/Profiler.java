@@ -13,10 +13,11 @@ public class Profiler
     private static Logger logger = Logger.getLogger(Class.class.getName());
     private static final MetricRegistry metrics = new MetricRegistry();
     private static final Meter requestCount = metrics.meter("Requests sent");
+    private static ConsoleReporter reporter;
 
     public static void start() {
 
-        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
+        reporter = ConsoleReporter.forRegistry(metrics)
                 .convertRatesTo(TimeUnit.SECONDS)
                 .build();
 
@@ -41,5 +42,9 @@ public class Profiler
     public static void fatal(String message)
     {
         logger.fatal(message);
+    }
+
+    public static void close() {
+        reporter.close();
     }
 }
