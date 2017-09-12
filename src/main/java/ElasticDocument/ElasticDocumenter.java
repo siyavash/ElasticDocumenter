@@ -10,7 +10,7 @@ public class ElasticDocumenter {
     private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue = new ArrayBlockingQueue<>(10000);
     private int iterateCount;
     private ZookeeperManager zookeeperManager;
-    private long timeSteps = 1000 * 60 * 120;
+    private long timeSteps = 1000 * 60 * 20;
     private String ipAddress = InetAddress.getLocalHost().getHostAddress();
     private Thread iteratingThread;
 
@@ -67,7 +67,7 @@ public class ElasticDocumenter {
         slaveRequestingThread.join();
     }
 
-    private void startIteratingThread(long start, long end) throws IOException, InterruptedException{
+    private void startIteratingThread(long start, long end) throws IOException, InterruptedException {
         iteratingThread = new Thread(() -> {
             Iterator<PageInfo> pageInfoIterator = null;
             try {
@@ -79,12 +79,10 @@ public class ElasticDocumenter {
             }
             PageInfo pageInfo;
 
-            while ((pageInfo = pageInfoIterator.next()) != null)
-            {
-                try
-                {
-                    if (pageInfo.getNumOfInputLinks() == 0)
-                    {
+            while ((pageInfo = pageInfoIterator.next()) != null) {
+                try {
+                    if (pageInfo.getNumOfInputLinks() == 0 || pageInfo.getBodyText() == null) {
+                        Profiler.info("skiped in iterating");
                         continue;
                     }
                     pageInfoArrayBlockingQueue.put(pageInfo);
