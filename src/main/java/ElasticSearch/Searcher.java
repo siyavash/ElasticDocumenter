@@ -68,7 +68,7 @@ public class Searcher
             JSONObject json = hits.getJSONObject(i).getJSONObject("_source");
             if (json.has("url"))
             {
-                System.out.println((i+1) + ". " + json.getString("url") + " " + json.get("title"));
+                System.out.println((i+1) + ". " + json.getString("url"));
             }
         }
     }
@@ -91,8 +91,8 @@ public class Searcher
                 "\"field_value_factor\": {\n" +
                 "\"field\": \"numOfInputLinks\",\n" +
                 "\"factor\": 1,\n" +
-                "\"modifier\": \"ln1p\",\n" +
-                "\"missing\": 0\n" +
+                "\"modifier\": \"none\",\n" +
+                "\"missing\": 1\n" +
                 "}\n" +
                 "}\n" +
                 "}\n" +
