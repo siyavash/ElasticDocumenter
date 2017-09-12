@@ -58,6 +58,8 @@ public class ReindexDecider extends Thread {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+            }else {
+                Profiler.info("not needed to index");
             }
 
         }
