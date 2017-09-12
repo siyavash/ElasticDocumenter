@@ -59,8 +59,8 @@ public class ElasticDocumenter {
     }
 
     private void startSendingRequestsThread() throws InterruptedException {
-        Thread masterRequestingThread = new RequestingThread("master", pageInfoFromHbase);
-        Thread slaveRequestingThread = new RequestingThread("slave", pageInfoFromHbase);
+        Thread masterRequestingThread = new RequestingThread("master", pageInfoToElastic);
+        Thread slaveRequestingThread = new RequestingThread("slave", pageInfoToElastic);
 
         masterRequestingThread.start();
         slaveRequestingThread.start();

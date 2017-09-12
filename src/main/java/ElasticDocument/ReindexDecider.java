@@ -25,17 +25,6 @@ public class ReindexDecider extends Thread {
         this.pageInfoToElastic = pageInfoToElastic;
     }
 
-    public static void main(String[] args) {
-
-        PageInfo pageInfo = new PageInfo();
-        ArrayList<Pair<String, Integer>> arrayList = new ArrayList<>();
-        arrayList.add(new Pair<>("LOL", 1));
-        arrayList.add(new Pair<>("FML", 2));
-        pageInfo.setInputAnchors(arrayList);
-        System.out.println(new Gson().toJson(pageInfo, PageInfo.class));
-//        System.out.println(convertToPageInfo(getFromElastic("http://ubucon.org")));
-    }
-
     @Override
     public void run() {
         while (true) {
@@ -49,6 +38,7 @@ public class ReindexDecider extends Thread {
             Response response = getFromElastic(url);
             PageInfo existPageInfo = convertToPageInfo(response);
             if (existPageInfo == null){
+                Profiler.info("PageInfo null");
                 continue;
             }
             boolean needReindex = checkIfNeedReindex(newPageInfo, existPageInfo);
