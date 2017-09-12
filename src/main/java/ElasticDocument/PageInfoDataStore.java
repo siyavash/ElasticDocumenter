@@ -9,6 +9,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -54,11 +55,18 @@ public class PageInfoDataStore {
         pageInfo.setContentTypeMeta(toPageInfoString(result.getValue(columnFamily, Bytes.toBytes("contentTypeMeta"))));
         pageInfo.setKeyWordsMeta(toPageInfoString(result.getValue(columnFamily, Bytes.toBytes("keyWordsMeta"))));
         pageInfo.setNumOfInputLinks(toPageInfoInt(result.getValue(columnFamily, Bytes.toBytes("numOfInputLinks"))));
-        pageInfo.setPageRank(toPageInfoInt(result.getValue(columnFamily, Bytes.toBytes("pr"))));
+        pageInfo.setPageRank(toPageInfoDouble(result.getValue(columnFamily, Bytes.toBytes("pr"))));
         pageInfo.setInputAnchors(toPageInfoInputAnchors(result.getValue(columnFamily, Bytes.toBytes("anchors"))));
-        pageInfo.setTitleMeta(toPageInfoString(result.getValue(columnFamily, Bytes.toBytes("titleMeta"))));
-
         return pageInfo;
+    }
+
+    private double toPageInfoDouble(byte[] num) {
+        if (num == null)
+        {
+            return 0;
+        }
+
+        return ByteBuffer.wrap(num).getDouble();
     }
 
     private ArrayList<Pair<String, Integer>> toPageInfoInputAnchors(byte[] anchors) {

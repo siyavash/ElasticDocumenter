@@ -1,6 +1,5 @@
 package ElasticSearch;
 
-import ElasticDocument.PageInfoDataStore;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.entity.ContentType;
@@ -41,7 +40,7 @@ public class Searcher
             String searchQuery = createQuery(input);
 
             HttpEntity getEntity = new NStringEntity(searchQuery, ContentType.APPLICATION_JSON);
-            Response response = restClient.performRequest("POST", "/gagoole/_search?pretty=true"/* + pageInfo.getUrl()*/, Collections.emptyMap(), getEntity);
+            Response response = restClient.performRequest("POST", "/gagoole/_search?pretty=true", Collections.emptyMap(), getEntity);
             String responseString = EntityUtils.toString(response.getEntity());
             showResults(responseString);
         }

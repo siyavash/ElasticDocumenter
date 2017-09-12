@@ -1,7 +1,5 @@
 package ElasticDocument;
 
-import org.apache.zookeeper.KeeperException;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Iterator;
@@ -9,11 +7,13 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class ElasticDocumenter {
     private PageInfoDataStore dataStore;
-    private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue = new ArrayBlockingQueue<>(10000);
+    private ArrayBlockingQueue<PageInfo> pageInfoFromHbase = new ArrayBlockingQueue<>(10000);
+    private ArrayBlockingQueue<PageInfo> pageInfoToElastic = new ArrayBlockingQueue<>(10000);
     private int iterateCount;
     private ZookeeperManager zookeeperManager;
     private long timeSteps = 1000 * 60 * 20;
     private String ipAddress = InetAddress.getLocalHost().getHostAddress();
+    private Thread iteratingThread;
 
     public static void main(String[] args) throws Exception {
 
@@ -42,7 +42,8 @@ public class ElasticDocumenter {
 
         long start = zookeeperManager.getNewTime(timeSteps);
         long end = start + timeSteps;
-
+        Thread reindexDecider = new ReindexDecider(pageInfoFromHbase, pageInfoToElastic);
+        reindexDecider.start();
         while (end < System.currentTimeMillis()) {
             startIteratingThread(start, end);
 
@@ -51,14 +52,15 @@ public class ElasticDocumenter {
             zookeeperManager.deleteTime();
             start = zookeeperManager.getNewTime(timeSteps);
             end = start + timeSteps;
+            System.out.println(end + ">>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<");
         }
 
         zookeeperManager.close();
     }
 
     private void startSendingRequestsThread() throws InterruptedException {
-        Thread masterRequestingThread = new RequestingThread("master", pageInfoArrayBlockingQueue);
-        Thread slaveRequestingThread = new RequestingThread("slave", pageInfoArrayBlockingQueue);
+        Thread masterRequestingThread = new RequestingThread("master", pageInfoToElastic);
+        Thread slaveRequestingThread = new RequestingThread("slave", pageInfoToElastic);
 
         masterRequestingThread.start();
         slaveRequestingThread.start();
@@ -67,8 +69,8 @@ public class ElasticDocumenter {
         slaveRequestingThread.join();
     }
 
-    private void startIteratingThread(long start, long end) throws IOException, InterruptedException{
-        new Thread(() -> {
+    private void startIteratingThread(long start, long end) throws IOException, InterruptedException {
+        iteratingThread = new Thread(() -> {
             Iterator<PageInfo> pageInfoIterator = null;
             try {
                 pageInfoIterator = dataStore.getRowIterator(start, end);
@@ -79,15 +81,13 @@ public class ElasticDocumenter {
             }
             PageInfo pageInfo;
 
-            while ((pageInfo = pageInfoIterator.next()) != null)
-            {
-                try
-                {
-                    if (pageInfo.getNumOfInputLinks() == 0)
-                    {
+            while ((pageInfo = pageInfoIterator.next()) != null) {
+                try {
+                    if (pageInfo.getNumOfInputLinks() == 0 || pageInfo.getBodyText() == null) {
+                        Profiler.info("skiped in iterating");
                         continue;
                     }
-                    pageInfoArrayBlockingQueue.put(pageInfo);
+                    pageInfoFromHbase.put(pageInfo);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -102,12 +102,13 @@ public class ElasticDocumenter {
             try {
                 PageInfo pageInfoFinsed = new PageInfo();
                 pageInfoFinsed.setUrl("finished");
-                pageInfoArrayBlockingQueue.put(pageInfoFinsed);
-                pageInfoArrayBlockingQueue.put(pageInfoFinsed);
+                pageInfoFromHbase.put(pageInfoFinsed);
+                pageInfoFromHbase.put(pageInfoFinsed);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }).start();
+        });
+        iteratingThread.start();
     }
 
 }

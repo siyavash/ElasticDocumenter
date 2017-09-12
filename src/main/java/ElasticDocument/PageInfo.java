@@ -15,10 +15,39 @@ public class PageInfo {
     private String title;
     private int numOfInputLinks;
     private ArrayList<Pair<String, Integer>> inputAnchors;
-    private int pageRank;
+    private double pageRank;
+
+    public String getTitleMeta() {
+        return titleMeta;
+    }
+
+    public String getDescriptionMeta() {
+        return descriptionMeta;
+    }
+
+    public String getKeyWordsMeta() {
+        return keyWordsMeta;
+    }
+
+    public String getAuthorMeta() {
+        return authorMeta;
+    }
+
+    public String getContentTypeMeta() {
+        return contentTypeMeta;
+    }
+
+//    public ArrayList<Pair<String, Integer>> getInputAnchors() {
+//        return inputAnchors;
+//    }
+
+//    public int getPageRank() {
+//        return pageRank;
+//    }
 
     public void setNumOfInputLinks(int numOfInputLinks) {
         this.numOfInputLinks = numOfInputLinks;
+
     }
 
     public String getBodyText() {
@@ -70,11 +99,15 @@ public class PageInfo {
         this.contentTypeMeta = contentTypeMeta;
     }
 
-    public void setPageRank(int pageRank) {
+    public void setPageRank(double pageRank) {
         this.pageRank = pageRank;
     }
 
     public String getUrl() {
         return url;
+    }
+
+    public double getPageRank() {
+        return pageRank;
     }
 }

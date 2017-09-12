@@ -1,62 +1,98 @@
 package ElasticDocument;
 
 import com.google.gson.Gson;
+import javafx.util.Pair;
 import org.apache.hadoop.yarn.webapp.view.HtmlPage;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.nio.entity.NStringEntity;
+import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.ArrayBlockingQueue;
 
-public class ReindexDecider {
+public class ReindexDecider extends Thread {
     private ArrayBlockingQueue<PageInfo> pageInfoFromHbase;
     private ArrayBlockingQueue<PageInfo> pageInfoToElastic;
 
-    public static void main(String[] args) {
-        ReindexDecider r = new ReindexDecider();
-        System.out.println(convertToPageInfo(getFromElastic("http://ubucon.org")).getBodyText());
-        System.out.println(convertToPageInfo(getFromElastic("http://ubucon.org")).getTitle());
+    public ReindexDecider(ArrayBlockingQueue<PageInfo> pageInfoFromHbase, ArrayBlockingQueue<PageInfo> pageInfoToElastic) {
+        this.pageInfoFromHbase = pageInfoFromHbase;
+        this.pageInfoToElastic = pageInfoToElastic;
     }
 
-    public ReindexDecider(/*ArrayBlockingQueue<PageInfo> pageInfoFromHbase, ArrayBlockingQueue<PageInfo> pageInfoToElastic*/) {
-        //this.pageInfoFromHbase = pageInfoFromHbase;
-        //this.pageInfoToElastic = pageInfoToElastic;
+    @Override
+    public void run() {
+        while (true) {
+            PageInfo newPageInfo;
+            try {
+                newPageInfo = pageInfoFromHbase.take();
+            } catch (InterruptedException e) {
+                continue;
+            }
+            String url = newPageInfo.getUrl();
+            Response response = getFromElastic(url);
+            PageInfo existPageInfo = convertToPageInfo(response);
+            if (existPageInfo == null){
+                Profiler.info("PageInfo null");
+                continue;
+            }
+            boolean needReindex = checkIfNeedReindex(newPageInfo, existPageInfo);
+            if (needReindex){
+                try {
+                    Profiler.info("need reindex");
+                    pageInfoToElastic.put(newPageInfo);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }else {
+                Profiler.info("not needed to index");
+            }
+        }
     }
 
+    private boolean checkIfNeedReindex(PageInfo newPageInfo, PageInfo existPageInfo) {
+        int newPageInputLink = newPageInfo.getNumOfInputLinks();
+        int existPageInputLink = existPageInfo.getNumOfInputLinks();
+        double newPageRank = newPageInfo.getPageRank();
+        double existPageRank = existPageInfo.getPageRank();
+        return ((((double)newPageInputLink - (double)existPageInputLink) / (double)existPageInputLink) >= 0.1) || (newPageRank - existPageRank >= 1.0);
+    }
 
     private static Response getFromElastic(String url) {
         RestClient restClient = RestClient.builder(new HttpHost("master", 9200, "http"),
                 new HttpHost("master", 9201, "http")).build();
-        HttpEntity getEntity = null;
-        getEntity = new NStringEntity("", ContentType.APPLICATION_JSON);
+        HttpEntity getEntity = new NStringEntity("", ContentType.APPLICATION_JSON);
         Response response = null;
         try {
-            response = restClient.performRequest("GET", "/gagoole/page/" + createId(url) + "/_source", Collections.emptyMap(), getEntity);
+            response = restClient.performRequest("GET", "/gagoolev2/page/" + getUrlID(url) + "/_source", Collections.emptyMap(), getEntity);
         } catch (IOException e) {
-
+            e.printStackTrace();
         }
         return response;
     }
 
     private static PageInfo convertToPageInfo(Response response){
         Gson gson = new Gson();
-        PageInfo pageInfo = null;
+        PageInfo pageInfo = new PageInfo();
         try {
-            pageInfo = gson.fromJson(response.getEntity().getContent().toString(), PageInfo.class);
+            String responseString = EntityUtils.toString(response.getEntity());
+//            System.out.println(responseString);
+            pageInfo = gson.fromJson(responseString, PageInfo.class);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
         return pageInfo;
     }
 
-    private static String createId(String url)
+    private static String getUrlID(String url)
     {
-        String id = url.replaceAll("[^a-zA-Z]", "");
+        String id = url.replaceAll("[^a-zA-Z0-9]", "");
         if (id.length() > 512)
         {
             StringBuilder newId = new StringBuilder(id.substring(0, 460));

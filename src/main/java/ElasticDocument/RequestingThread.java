@@ -49,7 +49,6 @@ public class RequestingThread extends Thread {
             t1 = System.currentTimeMillis();
 
             String requestBody = createRequestBody(pageInfos);
-            System.out.println(requestBody);
             HttpEntity putEntity = new NStringEntity(requestBody, ContentType.APPLICATION_JSON);
             try {
                 restClient.performRequest("POST", "_bulk", Collections.emptyMap(), putEntity);
@@ -81,7 +80,7 @@ public class RequestingThread extends Thread {
         for (PageInfo pageInfo : pageInfos) {
             String id = createId(pageInfo.getUrl());
 
-            finalRequest.append("{ \"index\" : { \"_index\" : \"gagoole\", \"_type\" : \"page\", \"_id\" : \"")
+            finalRequest.append("{ \"index\" : { \"_index\" : \"gagoolev2\", \"_type\" : \"page\", \"_id\" : \"")
                     .append(id).append("\" } }");
             finalRequest.append("\n");
 
