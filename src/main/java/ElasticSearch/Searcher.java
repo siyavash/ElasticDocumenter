@@ -1,6 +1,5 @@
 package ElasticSearch;
 
-import ElasticDocument.PageInfoDataStore;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.entity.ContentType;
@@ -68,7 +67,7 @@ public class Searcher
             JSONObject json = hits.getJSONObject(i).getJSONObject("_source");
             if (json.has("url"))
             {
-                System.out.println((i+1) + ". " + json.getString("url"));
+                System.out.println((i+1) + ". " + json.getString("url") + " " + json.get("title"));
             }
         }
     }
@@ -85,7 +84,7 @@ public class Searcher
                 "\"multi_match\" : {\n" +
                 "\"operator\": \"and\", \n" +
                 "\"query\" : \"" + input + "\",\n" +
-                "\"fields\" : [ \"bodyText^0.01\" , \"descriptionMeta^3\" , \"keyWordsMeta^3\" , \"authorMeta\" , \"contentTypeMeta^2\" , \"title^5\", \"url^2\" ]\n" +
+                "\"fields\" : [ \"bodyText^0.01\" , \"descriptionMeta^3\" , \"keyWordsMeta^3\" , \"authorMeta\" , \"contentTypeMeta^2\" , \"title^2\", \"url^2\" ]\n" +
                 "}\n" +
                 "},\n" +
                 "\"field_value_factor\": {\n" +
