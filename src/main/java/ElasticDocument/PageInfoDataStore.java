@@ -1,5 +1,6 @@
 package ElasticDocument;
 
+import javafx.util.Pair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
@@ -8,17 +9,16 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 
-public class PageInfoDataStore
-{
+public class PageInfoDataStore {
     private Connection hbaseConnection;
     private TableName tableName = TableName.valueOf("wb");
     private byte[] columnFamily = Bytes.toBytes("cf");
     private Logger logger = Logger.getLogger(Class.class.getName());
 
-    public PageInfoDataStore(String zookeeperClientPort, String zookeeperQuorum) throws IOException
-    {
+    public PageInfoDataStore(String zookeeperClientPort, String zookeeperQuorum) throws IOException {
         Configuration configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.property.clientPort", zookeeperClientPort);
         configuration.set("hbase.zookeeper.quorum", zookeeperQuorum);
@@ -26,41 +26,21 @@ public class PageInfoDataStore
         logger.info("Connection to hbase established");
     }
 
-    public Iterator<PageInfo> getRowIterator(long startTimeStamp, long stopTimeStamp, String lastCheckedURL) throws IOException
-    {
-        Table table = null;
-        try
-        {
-            table = hbaseConnection.getTable(tableName);
-            Scan scan;
-            if (lastCheckedURL == null)
-            {
-                scan = new Scan();
-            } else
-            {
-                scan = new Scan(Bytes.toBytes(lastCheckedURL));
-            }
-
-            if (startTimeStamp != -1 && stopTimeStamp != -1)
-            {
+    public Iterator<PageInfo> getRowIterator(long startTimeStamp, long stopTimeStamp)
+            throws IOException {
+        try (Table table = hbaseConnection.getTable(tableName)) {
+            Scan scan = new Scan();
+            if (startTimeStamp != -1 && stopTimeStamp != -1) {
                 scan.setTimeRange(startTimeStamp, stopTimeStamp);
             }
             scan.setCaching(23);
             ResultScanner rowScanner = table.getScanner(scan);
             return new RowIterator(rowScanner);
-        } finally
-        {
-            if (table != null)
-            {
-                table.close();
-            }
         }
     }
 
-    private PageInfo createPageInfo(Result result)
-    {
-        if (result == null)
-        {
+    private PageInfo createPageInfo(Result result) {
+        if (result == null) {
             return null;
         }
 
@@ -73,27 +53,41 @@ public class PageInfoDataStore
         pageInfo.setDescriptionMeta(toPageInfoString(result.getValue(columnFamily, Bytes.toBytes("descriptionMeta"))));
         pageInfo.setContentTypeMeta(toPageInfoString(result.getValue(columnFamily, Bytes.toBytes("contentTypeMeta"))));
         pageInfo.setKeyWordsMeta(toPageInfoString(result.getValue(columnFamily, Bytes.toBytes("keyWordsMeta"))));
-        pageInfo.setNumOfInputLinks(toPageInfoInt(result.getValue(columnFamily, Bytes.toBytes("inputLinks"))));
-//TODO: pageInfo.setInputAnchors(toPageInfoString(result.getValue(columnFamily, Bytes.toBytes("inputAnchors"))));
+        pageInfo.setNumOfInputLinks(toPageInfoInt(result.getValue(columnFamily, Bytes.toBytes("numOfInputLinks"))));
+        pageInfo.setPageRank(toPageInfoInt(result.getValue(columnFamily, Bytes.toBytes("pr"))));
+        pageInfo.setInputAnchors(toPageInfoInputAnchors(result.getValue(columnFamily, Bytes.toBytes("anchors"))));
         pageInfo.setTitleMeta(toPageInfoString(result.getValue(columnFamily, Bytes.toBytes("titleMeta"))));
 
         return pageInfo;
     }
 
-    private String toPageInfoString(byte[] bodyTexts)
-    {
-        if (bodyTexts == null)
-        {
+    private ArrayList<Pair<String, Integer>> toPageInfoInputAnchors(byte[] anchors) {
+        if (anchors == null) {
+            return null;
+        }
+        ArrayList<Pair<String, Integer>> anchorsList = new ArrayList<>();
+        String[] splitedAnchors = new String(anchors).split("\n");
+        for (int i = 0; i < splitedAnchors.length; i+=2) {
+            try {
+                anchorsList.add(new Pair<>(splitedAnchors[i], Integer.parseInt(splitedAnchors[i])));
+            }
+            catch (NumberFormatException e){
+                e.printStackTrace();
+            }
+        }
+        return anchorsList;
+    }
+
+    private String toPageInfoString(byte[] bodyTexts) {
+        if (bodyTexts == null) {
             return null;
         }
 
         return new String(bodyTexts);
     }
 
-    private int toPageInfoInt(byte[] num)
-    {
-        if (num == null)
-        {
+    private int toPageInfoInt(byte[] num) {
+        if (num == null) {
             return 0;
         }
 
@@ -103,32 +97,27 @@ public class PageInfoDataStore
         return value;
     }
 
-    private class RowIterator implements Iterator<PageInfo>
-    {
+    private class RowIterator implements Iterator<PageInfo> {
         private Iterator<Result> rowIterator;
 
-        private RowIterator(ResultScanner rowScanner)
-        {
+        private RowIterator(ResultScanner rowScanner) {
             this.rowIterator = rowScanner.iterator();
         }
 
 
         @Override
-        public boolean hasNext()
-        {
+        public boolean hasNext() {
             return rowIterator.hasNext();
         }
 
         @Override
-        public PageInfo next()
-        {
+        public PageInfo next() {
             long t1 = System.currentTimeMillis();
 
             Result nextResult = rowIterator.next();
 
             t1 = System.currentTimeMillis() - t1;
-            if (t1 > 50)
-            {
+            if (t1 > 50) {
                 logger.warn("Getting the next object in the iterator took " + t1 + " milli seconds");
             }
 
