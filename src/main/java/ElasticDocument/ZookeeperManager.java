@@ -54,7 +54,7 @@ public class ZookeeperManager {
         if (time != -1)
             return time;
 
-        List<String> children = client.getChildren().forPath(path + "/servers/");
+        List<String> children = client.getChildren().forPath(path + "/servers");
         for (String child : children) {
             if (client.checkExists().forPath(path + "/servers/" + child + "/isAlive") == null) {
                 lock = new InterProcessMutex(client, path + "/servers/" + child + "/time/lock");
