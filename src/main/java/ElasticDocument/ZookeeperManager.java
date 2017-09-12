@@ -42,7 +42,7 @@ public class ZookeeperManager {
     }
 
     public long getNewTime(long timeSteps) throws Exception {
-        InterProcessMutex lock = new InterProcessMutex(client, path + "/servers/" + ipAdress + "time/lock");
+        InterProcessMutex lock = new InterProcessMutex(client, path + "/servers/" + ipAdress + "/time/lock");
         lock.acquire();
 
         long time;
@@ -57,7 +57,7 @@ public class ZookeeperManager {
         List<String> children = client.getChildren().forPath(path + "/servers/");
         for (String child : children) {
             if (client.checkExists().forPath(path + "/servers/" + child + "/isAlive") == null) {
-                lock = new InterProcessMutex(client, path + "/servers/" + child + "time/lock");
+                lock = new InterProcessMutex(client, path + "/servers/" + child + "/time/lock");
                 lock.acquire();
                 time = Long.parseLong(new String(client.getData().forPath(path + "/servers/" + child + "/time")));
                 if (time != -1) {
