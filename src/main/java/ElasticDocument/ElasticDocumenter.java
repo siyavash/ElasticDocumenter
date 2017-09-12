@@ -1,7 +1,5 @@
 package ElasticDocument;
 
-import org.apache.zookeeper.KeeperException;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Iterator;
@@ -9,7 +7,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class ElasticDocumenter {
     private PageInfoDataStore dataStore;
-    private ArrayBlockingQueue<PageInfo> pageInfoArrayBlockingQueue = new ArrayBlockingQueue<>(10000);
+    private ArrayBlockingQueue<PageInfo> pageInfoFromHbase = new ArrayBlockingQueue<>(10000);
+    private ArrayBlockingQueue<PageInfo> pageInfoToElastic = new ArrayBlockingQueue<>(10000);
     private int iterateCount;
     private ZookeeperManager zookeeperManager;
     private long timeSteps = 1000 * 60 * 20;
@@ -43,6 +42,8 @@ public class ElasticDocumenter {
         long start = zookeeperManager.getNewTime(timeSteps);
         long end = start + timeSteps;
 
+        Thread reindexDecider = new ReindexDecider(pageInfoFromHbase, pageInfoToElastic);
+        reindexDecider.start();
         while (end < System.currentTimeMillis()) {
             startIteratingThread(start, end);
 
@@ -57,8 +58,8 @@ public class ElasticDocumenter {
     }
 
     private void startSendingRequestsThread() throws InterruptedException {
-        Thread masterRequestingThread = new RequestingThread("master", pageInfoArrayBlockingQueue);
-        Thread slaveRequestingThread = new RequestingThread("slave", pageInfoArrayBlockingQueue);
+        Thread masterRequestingThread = new RequestingThread("master", pageInfoFromHbase);
+        Thread slaveRequestingThread = new RequestingThread("slave", pageInfoFromHbase);
 
         masterRequestingThread.start();
         slaveRequestingThread.start();
@@ -87,7 +88,7 @@ public class ElasticDocumenter {
                     {
                         continue;
                     }
-                    pageInfoArrayBlockingQueue.put(pageInfo);
+                    pageInfoFromHbase.put(pageInfo);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -102,8 +103,8 @@ public class ElasticDocumenter {
             try {
                 PageInfo pageInfoFinsed = new PageInfo();
                 pageInfoFinsed.setUrl("finished");
-                pageInfoArrayBlockingQueue.put(pageInfoFinsed);
-                pageInfoArrayBlockingQueue.put(pageInfoFinsed);
+                pageInfoFromHbase.put(pageInfoFinsed);
+                pageInfoFromHbase.put(pageInfoFinsed);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

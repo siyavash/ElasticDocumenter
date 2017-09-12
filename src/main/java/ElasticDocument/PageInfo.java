@@ -17,8 +17,37 @@ public class PageInfo {
     private ArrayList<Pair<String, Integer>> inputAnchors;
     private int pageRank;
 
+    public String getTitleMeta() {
+        return titleMeta;
+    }
+
+    public String getDescriptionMeta() {
+        return descriptionMeta;
+    }
+
+    public String getKeyWordsMeta() {
+        return keyWordsMeta;
+    }
+
+    public String getAuthorMeta() {
+        return authorMeta;
+    }
+
+    public String getContentTypeMeta() {
+        return contentTypeMeta;
+    }
+
+//    public ArrayList<Pair<String, Integer>> getInputAnchors() {
+//        return inputAnchors;
+//    }
+
+//    public int getPageRank() {
+//        return pageRank;
+//    }
+
     public void setNumOfInputLinks(int numOfInputLinks) {
         this.numOfInputLinks = numOfInputLinks;
+
     }
 
     public String getBodyText() {
