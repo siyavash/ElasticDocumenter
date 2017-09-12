@@ -34,7 +34,7 @@
                             <archive>
                                 <manifest>
                                     <addClasspath>true</addClasspath>
-                                    <mainClass>ElasticDocument.ReindexDecider</mainClass>
+                                    <mainClass>ElasticDocument.ElasticDocumenter</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
