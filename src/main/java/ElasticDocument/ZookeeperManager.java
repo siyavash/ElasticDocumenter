@@ -27,13 +27,13 @@ public class ZookeeperManager {
 
     public void makeEphemeral() throws Exception {
         if (client.checkExists().forPath(path) == null)
-            client.create().forPath(path);
+            client.create().forPath(path, "".getBytes());
         if (client.checkExists().forPath(path + "/servers") == null)
-            client.create().forPath(path + "/servers");
+            client.create().forPath(path + "/servers", "".getBytes());
         if (client.checkExists().forPath(path + "/servers/" + ipAdress) == null)
-            client.create().forPath(path + "/servers/" + ipAdress);
+            client.create().forPath(path + "/servers/" + ipAdress, "".getBytes());
         if (client.checkExists().forPath(path + "/servers/" + ipAdress + "/time") == null)
-            client.create().forPath(path + "/servers/" + ipAdress + "/time");
+            client.create().forPath(path + "/servers/" + ipAdress + "/time","-1".getBytes());
 
         if (client.checkExists().forPath(path + "/nextTime") == null)
             client.create().forPath(path + "/nextTime", "0".getBytes());
