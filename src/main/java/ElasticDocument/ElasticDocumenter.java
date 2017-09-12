@@ -73,6 +73,10 @@ public class ElasticDocumenter
             {
                 try
                 {
+                    if (pageInfo.getNumOfInputLinks() == 0)
+                    {
+                        continue;
+                    }
                     pageInfoArrayBlockingQueue.put(pageInfo);
                 } catch (InterruptedException e)
                 {
