@@ -21,6 +21,19 @@ public class PageInfo {
         this.numOfInputLinks = numOfInputLinks;
     }
 
+    public String getBodyText() {
+        return bodyText;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public int getNumOfInputLinks() {
+
+        return numOfInputLinks;
+    }
+
     public void setInputAnchors(ArrayList<Pair<String, Integer>> inputAnchors) {
         this.inputAnchors = inputAnchors;
     }

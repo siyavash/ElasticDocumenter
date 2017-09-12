@@ -79,8 +79,14 @@ public class ElasticDocumenter {
             }
             PageInfo pageInfo;
 
-            while ((pageInfo = pageInfoIterator.next()) != null) {
-                try {
+            while ((pageInfo = pageInfoIterator.next()) != null)
+            {
+                try
+                {
+                    if (pageInfo.getNumOfInputLinks() == 0)
+                    {
+                        continue;
+                    }
                     pageInfoArrayBlockingQueue.put(pageInfo);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
