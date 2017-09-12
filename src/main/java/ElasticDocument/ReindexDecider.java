@@ -28,34 +28,29 @@ public class ReindexDecider extends Thread {
     @Override
     public void run() {
         while (true) {
-//            PageInfo newPageInfo;
-//            try {
-//                newPageInfo = pageInfoFromHbase.take();
-//            } catch (InterruptedException e) {
-//                continue;
-//            }
-//            String url = newPageInfo.getUrl();
-//            Response response = getFromElastic(url);
-//            PageInfo existPageInfo = convertToPageInfo(response);
-//            if (existPageInfo == null){
-//                Profiler.info("PageInfo null");
-//                continue;
-//            }
-//            boolean needReindex = checkIfNeedReindex(newPageInfo, existPageInfo);
-//            if (needReindex){
-//                try {
-//                    pageInfoToElastic.put(newPageInfo);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }else {
-//                Profiler.info("not needed to index");
-//            }
+            PageInfo newPageInfo;
             try {
-                System.out.println();
-                pageInfoToElastic.put(pageInfoFromHbase.take());
+                newPageInfo = pageInfoFromHbase.take();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                continue;
+            }
+            String url = newPageInfo.getUrl();
+            Response response = getFromElastic(url);
+            PageInfo existPageInfo = convertToPageInfo(response);
+            if (existPageInfo == null){
+                Profiler.info("PageInfo null");
+                continue;
+            }
+            boolean needReindex = checkIfNeedReindex(newPageInfo, existPageInfo);
+            if (needReindex){
+                try {
+                    Profiler.info("need reindex");
+                    pageInfoToElastic.put(newPageInfo);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }else {
+                Profiler.info("not needed to index");
             }
         }
     }
