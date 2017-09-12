@@ -15,7 +15,7 @@ public class PageInfo {
     private String title;
     private int numOfInputLinks;
     private ArrayList<Pair<String, Integer>> inputAnchors;
-    private int pageRank;
+    private double pageRank;
 
     public String getTitleMeta() {
         return titleMeta;
@@ -99,11 +99,15 @@ public class PageInfo {
         this.contentTypeMeta = contentTypeMeta;
     }
 
-    public void setPageRank(int pageRank) {
+    public void setPageRank(double pageRank) {
         this.pageRank = pageRank;
     }
 
     public String getUrl() {
         return url;
+    }
+
+    public double getPageRank() {
+        return pageRank;
     }
 }
