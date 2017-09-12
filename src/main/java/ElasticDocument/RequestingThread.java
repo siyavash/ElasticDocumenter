@@ -5,6 +5,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.nio.entity.NStringEntity;
+import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
 
 import java.io.IOException;
@@ -55,6 +56,7 @@ public class RequestingThread extends Thread {
                 Profiler.requestSent(REQUEST_THREAD_DOC_NUM);
                 t1 = System.currentTimeMillis() - t1;
                 Profiler.info("Request sent in " + t1 + " milli seconds");
+            } catch (ResponseException ignored) {
             } catch (IOException e) {
                 e.printStackTrace();
             }
