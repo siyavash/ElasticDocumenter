@@ -28,30 +28,35 @@ public class ReindexDecider extends Thread {
     @Override
     public void run() {
         while (true) {
-            PageInfo newPageInfo;
+//            PageInfo newPageInfo;
+//            try {
+//                newPageInfo = pageInfoFromHbase.take();
+//            } catch (InterruptedException e) {
+//                continue;
+//            }
+//            String url = newPageInfo.getUrl();
+//            Response response = getFromElastic(url);
+//            PageInfo existPageInfo = convertToPageInfo(response);
+//            if (existPageInfo == null){
+//                Profiler.info("PageInfo null");
+//                continue;
+//            }
+//            boolean needReindex = checkIfNeedReindex(newPageInfo, existPageInfo);
+//            if (needReindex){
+//                try {
+//                    pageInfoToElastic.put(newPageInfo);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }else {
+//                Profiler.info("not needed to index");
+//            }
             try {
-                newPageInfo = pageInfoFromHbase.take();
+                System.out.println();
+                pageInfoToElastic.put(pageInfoFromHbase.take());
             } catch (InterruptedException e) {
-                continue;
+                e.printStackTrace();
             }
-            String url = newPageInfo.getUrl();
-            Response response = getFromElastic(url);
-            PageInfo existPageInfo = convertToPageInfo(response);
-            if (existPageInfo == null){
-                Profiler.info("PageInfo null");
-                continue;
-            }
-            boolean needReindex = checkIfNeedReindex(newPageInfo, existPageInfo);
-            if (needReindex){
-                try {
-                    pageInfoToElastic.put(newPageInfo);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }else {
-                Profiler.info("not needed to index");
-            }
-
         }
     }
 
